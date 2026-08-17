@@ -135,6 +135,17 @@ impl NLTKWordTokenizer {
 mod tests {
     use super::*;
     #[test]
+    fn word_period_split() {
+        assert_eq!(
+            NLTKWordTokenizer::tokenize_core("word.", false),
+            vec!["word", "."]
+        );
+        assert_eq!(
+            NLTKWordTokenizer::tokenize_core("Hello world.", false),
+            vec!["Hello", "world", "."]
+        );
+    }
+    #[test]
     fn basic_split() {
         let t = NLTKWordTokenizer::tokenize_core("Good muffins cost $3.88 in New York.", false);
         assert!(t.contains(&"Good".to_string()));
