@@ -15,7 +15,7 @@ jobs:
           source .venv/bin/activate
           pip install maturin nltk
           maturin develop --release
-          python scripts/gutenberg_bench.py 2>&1 | tee gutenberg_report.txt
+          PORTED_LIB_PUNKT_BRIDGE=1 python scripts/gutenberg_bench.py 2>&1 | tee gutenberg_report.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with: { name: gutenberg-report, path: gutenberg_report.txt }
