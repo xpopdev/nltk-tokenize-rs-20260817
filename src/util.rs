@@ -74,11 +74,6 @@ pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
                 char_idx += 1;
             }
             if in_tok { out2.push((tok_start, char_idx)); }
-            // regexp_span_tokenize with gaps=true,discard_empty=true returns token spans, but with gaps=false would be different
-            // For \s+ gaps semantics, token spans are what we just computed; empty-filtered.
-            // To match general regexp_span_tokenize gaps behavior (which returns gaps between matches), we need to know gaps.
-            // The callers use regexp_span_tokenize as gaps-between-matches: our earlier impl does gaps logic.
-            // For \s+ the gaps logic yields same as token spans, so return out2.
             return out2;
         }
     }
@@ -141,10 +136,22 @@ impl CjkRanges {
 
 pub fn is_cjk(c: char) -> bool {
     let cp = c as u32;
-    CjkRanges::RANGES.iter().any(|&(s, e)| cp >= s && cp <= e)
+    // binary search over sorted non-overlapping ranges — 8 ranges, log2
+    let r = CjkRanges::RANGES;
+    let mut lo = 0usize;
+    let mut hi = r.len();
+    while lo < hi {
+        let mid = (lo + hi) / 2;
+        let (s, e) = r[mid];
+        if cp < s { hi = mid; } else if cp > e { lo = mid + 1; } else { return true; }
+    }
+    false
 }
 
 pub fn xml_escape(text: &str) -> String {
+    if !text.contains(['&', '<', '>', '\'', '"', '|', '[', ']']) {
+        return text.to_string();
+    }
     let mut out = String::with_capacity(text.len() + 16);
     for c in text.chars() {
         match c {
@@ -163,6 +170,9 @@ pub fn xml_escape(text: &str) -> String {
 }
 
 pub fn xml_unescape(text: &str) -> String {
+    if !text.contains('&') {
+        return text.to_string();
+    }
     let mut out = String::with_capacity(text.len());
     let bytes = text.as_bytes();
     let mut i = 0;
