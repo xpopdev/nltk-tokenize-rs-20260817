@@ -99,8 +99,8 @@ def main():
     print("\n=== regexp batch (\\s+) ===")
     all_rows += bench_batch("regexp_tokenize",
         SENTENCES,
-        lambda t: ported_lib.regexp_tokenize(t, r"\s+", gaps=True),
-        lambda ts: [ported_lib.regexp_tokenize(t, r"\s+", gaps=True) for t in ts],
+        lambda t: ported_lib.regexp_tokenize(t, r"\s+", gaps=True, discard_empty=True),
+        lambda ts: [ported_lib.regexp_tokenize(t, r"\s+", gaps=True, discard_empty=True) for t in ts],
         lambda ts: ported_lib.regexp_tokenize_batch_gpu(ts, r"\s+", True, True),
         sizes)
 
