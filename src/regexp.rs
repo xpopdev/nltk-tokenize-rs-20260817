@@ -150,13 +150,8 @@ fn blankline_fast(s: &str) -> Vec<String> {
             if slice.matches('\n').count() >= 2 {
                 let tok = s[start..i].trim();
                 if !tok.is_empty() { out.push(tok.to_string()); }
-                // skip the blank separator
+                // skip the blank separator (j already past all ws/newlines)
                 start = j;
-                // trim leading whitespace of next token
-                while start < n && (bytes[start] == b' ' || bytes[start] == b'\t' || bytes[start] == b'\r' || bytes[start] == b'\n') {
-                    // but don't consume past next content — we already at j, find next non-ws line
-                    break;
-                }
                 i = j;
                 continue;
             }
