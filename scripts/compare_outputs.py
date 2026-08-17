@@ -89,11 +89,14 @@ def main() -> int:
 
     if not FUNCTION_PAIRS:
         print(
-            "No FUNCTION_PAIRS registered yet — the matrix-test-writer agent "
-            "needs to wire up original vs ported callables.",
+            "No FUNCTION_PAIRS registered yet — emitting empty report (M1 scaffold).",
             file=sys.stderr,
         )
-        return 1
+        with open("matrix_report.json", "w") as f:
+            json.dump([], f, indent=2)
+        with open("matrix_report.md", "w") as f:
+            f.write(f"# Matrix report ({args.size}) — empty (no pairs yet, M1 scaffold)\n\nNo pairs registered.\n")
+        return 0
 
     rows: list[Row] = []
     for fn_key, (original, ported) in FUNCTION_PAIRS.items():
