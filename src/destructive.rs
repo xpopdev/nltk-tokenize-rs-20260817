@@ -1,58 +1,44 @@
-use crate::regex_cache::cached_regex;
+use std::sync::LazyLock;
+use regex::Regex;
 
-fn repl_python_to_rust(s: &str) -> String {
-    let mut out = String::new();
-    let chars: Vec<char> = s.chars().collect();
-    let mut i = 0;
-    while i < chars.len() {
-        if chars[i] == '\\' && i + 1 < chars.len() {
-            if chars[i + 1] == 'g' && i + 3 < chars.len() && chars[i + 2] == '<' {
-                // \g<0> -> $0  or \g<1> etc
-                if let Some(end) = chars[i..].iter().position(|&c| c == '>') {
-                    let inner: String = chars[i + 3..i + end].iter().collect();
-                    out.push('$');
-                    out.push_str(&inner);
-                    i += end + 1;
-                    continue;
-                }
-            } else if chars[i + 1].is_ascii_digit() {
-                out.push('$');
-                out.push(chars[i + 1]);
-                i += 2;
-                continue;
-            }
-        }
-        out.push(chars[i]);
-        i += 1;
-    }
-    out
-}
-
-fn apply(text: &str, pattern: &str, replacement: &str) -> String {
-    // Strip Python (?#...) comments
-    let cleaned = strip_comments(pattern);
-    let re = cached_regex(&cleaned);
-    let rust_repl = repl_python_to_rust(replacement);
-    re.replace_all(text, rust_repl.as_str()).to_string()
-}
-
-fn strip_comments(pat: &str) -> String {
-    let mut out = String::new();
-    let chars: Vec<char> = pat.chars().collect();
-    let mut i = 0;
-    while i < chars.len() {
-        if i + 3 < chars.len() && chars[i] == '(' && chars[i + 1] == '?' && chars[i + 2] == '#' {
-            // skip until ')'
-            if let Some(end) = chars[i..].iter().position(|&c| c == ')') {
-                i += end + 1;
-                continue;
-            }
-        }
-        out.push(chars[i]);
-        i += 1;
-    }
-    out
-}
+static RE_Q1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([«“‘„]|[`]+)").unwrap());
+static RE_Q2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"^""#).unwrap());
+static RE_Q3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(``)").unwrap());
+static RE_Q4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r##"([ \(\[{<])("|'{2})"##).unwrap());
+static RE_CLITIC: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)'(\w)\b").unwrap());
+static RE_P1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"([^\.])(\.)([\]\[\)}>"'»”’]*)\s*$"#).unwrap());
+static RE_P2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([:,])([^\d])").unwrap());
+static RE_P3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([:,])$").unwrap());
+static RE_P4: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.{2,}").unwrap());
+static RE_P5: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[;@#$%&]").unwrap());
+static RE_P6: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"([^\.])(\.)([\]\[\)}>"']*)\s*$"#).unwrap());
+static RE_P7: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[?!]").unwrap());
+static RE_P8: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^'])' ").unwrap());
+static RE_P9: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[*]").unwrap());
+static RE_PARENS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[\]\[(){}<>]").unwrap());
+static RE_LRB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\(").unwrap());
+static RE_RRB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\)").unwrap());
+static RE_LSB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\[").unwrap());
+static RE_RSB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\]").unwrap());
+static RE_LCB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\{").unwrap());
+static RE_RCB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\}").unwrap());
+static RE_DASH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"--").unwrap());
+static RE_RQUOTE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([»”’])").unwrap());
+static RE_DQ: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"''").unwrap());
+static RE_Q: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"""#).unwrap());
+static RE_WS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
+static RE_C1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^' ])('[sS]|'[mM]|'[dD]|') ").unwrap());
+static RE_C2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ").unwrap());
+static RE_CONT_CAN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(can)(not)\b").unwrap());
+static RE_CONT_DYE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(d)('ye)\b").unwrap());
+static RE_CONT_GIM: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(gim)(me)\b").unwrap());
+static RE_CONT_GON: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(gon)(na)\b").unwrap());
+static RE_CONT_GOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(got)(ta)\b").unwrap());
+static RE_CONT_LEM: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(lem)(me)\b").unwrap());
+static RE_CONT_MORE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(more)('n)\b").unwrap());
+static RE_CONT_WAN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)\b(wan)(na)\b").unwrap());
+static RE_TIS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i) ('t)(is)\b").unwrap());
+static RE_TWAS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i) ('t)(was)\b").unwrap());
 
 pub fn align_tokens(tokens: &[String], sentence: &str) -> Vec<(usize, usize)> {
     let mut point_byte = 0usize;
@@ -79,29 +65,18 @@ impl NLTKWordTokenizer {
     pub fn tokenize_core(text: &str, convert_parentheses: bool) -> Vec<String> {
         let mut s = text.to_string();
 
-        // STARTING_QUOTES
-        s = apply(&s, r"([«“‘„]|[`]+)", r" $1 ");
-        s = apply(&s, "^\"", r"``");
-        s = apply(&s, r"(``)", r" $1 ");
-        s = apply(&s, r##"([ \(\[{<])("|'{2})"##, r"$1 `` ");
-        // Rewrite of (?i)(')(?!re|ve|ll|m|t|s|d|n)(\w)\b — Rust regex has no lookahead
-        // Match ' + word char, then filter out excluded clitics in Rust
+        s = RE_Q1.replace_all(&s, " $1 ").to_string();
+        s = RE_Q2.replace(&s, "``").to_string();
+        s = RE_Q3.replace_all(&s, " $1 ").to_string();
+        s = RE_Q4.replace_all(&s, "$1 `` ").to_string();
         {
-            let re = cached_regex(r"(?i)'(\w)\b");
             let excludes = ["re", "ve", "ll", "m", "t", "s", "d", "n"];
-            s = re
+            s = RE_CLITIC
                 .replace_all(&s, |caps: &regex::Captures| {
                     let ch = caps.get(1).unwrap().as_str();
-                    // Look ahead: if the word starting here is in excludes, don't split
-                    // Recreate original lookahead semantics: check following word slice
                     let start = caps.get(0).unwrap().start();
-                    // Extract the word that starts at ch position to test against excludes
-                    // The capture is single char, but lookahead originally checks multi-char strings like "re"
-                    // So we look at substring from ch onward up to word boundary
                     let rest = &s[start + 1..];
-                    let word_end = rest
-                        .find(|c: char| !c.is_alphanumeric())
-                        .unwrap_or(rest.len());
+                    let word_end = rest.find(|c: char| !c.is_alphanumeric()).unwrap_or(rest.len());
                     let word = rest[..word_end].to_lowercase();
                     if excludes.contains(&word.as_str()) {
                         caps[0].to_string()
@@ -112,63 +87,54 @@ impl NLTKWordTokenizer {
                 .to_string();
         }
 
-        // PUNCTUATION — mirrors nltk.tokenize.destructive.PUNCTUATION
-        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"'»”’]*)\s*$"#, r"$1 $2 $3 ");
-        s = apply(&s, r"([:,])([^\d])", r" $1 $2");
-        s = apply(&s, r"([:,])$", r" $1 ");
-        s = apply(&s, r"\.{2,}", r" $0 ");
-        s = apply(&s, r"[;@#$%&]", r" $0 ");
-        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"']*)\s*$"#, r"$1 $2$3 ");
-        s = apply(&s, r"[?!]", r" $0 ");
-        s = apply(&s, r"([^'])' ", r"$1 ' ");
-        s = apply(&s, r"[*]", r" $0 ");
+        s = RE_P1.replace_all(&s, "$1 $2 $3 ").to_string();
+        s = RE_P2.replace_all(&s, " $1 $2").to_string();
+        s = RE_P3.replace_all(&s, " $1 ").to_string();
+        s = RE_P4.replace_all(&s, " $0 ").to_string();
+        s = RE_P5.replace_all(&s, " $0 ").to_string();
+        s = RE_P6.replace_all(&s, "$1 $2$3 ").to_string();
+        s = RE_P7.replace_all(&s, " $0 ").to_string();
+        s = RE_P8.replace_all(&s, "$1 ' ").to_string();
+        s = RE_P9.replace_all(&s, " $0 ").to_string();
 
-        // PARENS
-        s = apply(&s, r"[\]\[(){}<>]", r" $0 ");
+        s = RE_PARENS.replace_all(&s, " $0 ").to_string();
 
         if convert_parentheses {
-            s = apply(&s, r"\(", "-LRB-");
-            s = apply(&s, r"\)", "-RRB-");
-            s = apply(&s, r"\[", "-LSB-");
-            s = apply(&s, r"\]", "-RSB-");
-            s = apply(&s, r"\{", "-LCB-");
-            s = apply(&s, r"\}", "-RCB-");
+            s = RE_LRB.replace_all(&s, "-LRB-").to_string();
+            s = RE_RRB.replace_all(&s, "-RRB-").to_string();
+            s = RE_LSB.replace_all(&s, "-LSB-").to_string();
+            s = RE_RSB.replace_all(&s, "-RSB-").to_string();
+            s = RE_LCB.replace_all(&s, "-LCB-").to_string();
+            s = RE_RCB.replace_all(&s, "-RCB-").to_string();
         }
 
-        s = apply(&s, r"--", r" -- ");
+        s = RE_DASH.replace_all(&s, " -- ").to_string();
 
         s.reserve(2); s.insert(0, ' '); s.push(' ');
 
-        s = apply(&s, r"([»”’])", r" $1 ");
-        s = apply(&s, r"''", " '' ");
-        s = apply(&s, "\"", " '' ");
-        s = apply(&s, r"\s+", " ");
-        s = apply(&s, r"([^' ])('[sS]|'[mM]|'[dD]|') ", r"$1 $2 ");
-        s = apply(&s, r"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ", r"$1 $2 ");
+        s = RE_RQUOTE.replace_all(&s, " $1 ").to_string();
+        s = RE_DQ.replace_all(&s, " '' ").to_string();
+        s = RE_Q.replace_all(&s, " '' ").to_string();
+        s = RE_WS.replace_all(&s, " ").to_string();
+        s = RE_C1.replace_all(&s, "$1 $2 ").to_string();
+        s = RE_C2.replace_all(&s, "$1 $2 ").to_string();
 
-        // CONTRACTIONS2 - rewritten without lookahead: \b(wan)(na)\b covers the (?=\s) case for most inputs
-        for pat in &[
-            r"(?i)\b(can)(not)\b",
-            r"(?i)\b(d)('ye)\b",
-            r"(?i)\b(gim)(me)\b",
-            r"(?i)\b(gon)(na)\b",
-            r"(?i)\b(got)(ta)\b",
-            r"(?i)\b(lem)(me)\b",
-            r"(?i)\b(more)('n)\b",
-            r"(?i)\b(wan)(na)\b",
-        ] {
-            s = apply(&s, pat, r" $1 $2 ");
-        }
-        for pat in &[r"(?i) ('t)(is)\b", r"(?i) ('t)(was)\b"] {
-            s = apply(&s, pat, r" $1 $2 ");
-        }
+        s = RE_CONT_CAN.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_DYE.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_GIM.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_GON.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_GOT.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_LEM.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_MORE.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_CONT_WAN.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_TIS.replace_all(&s, " $1 $2 ").to_string();
+        s = RE_TWAS.replace_all(&s, " $1 $2 ").to_string();
 
         s.split_whitespace().map(|x| x.to_string()).collect()
     }
 
     pub fn span_tokenize_core(text: &str) -> Vec<(usize, usize)> {
         let toks = Self::tokenize_core(text, false);
-        // Quote restoration branch omitted for M1 skeleton; align directly
         align_tokens(&toks, text)
     }
 }

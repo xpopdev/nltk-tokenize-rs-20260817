@@ -29,7 +29,8 @@ impl RegexpTokenizer {
 
     pub fn tokenize(&mut self, text: &str) -> Vec<String> {
         let gaps = self.gaps;
-        let re = self.get_regex().clone();
+        let discard_empty = self.discard_empty;
+        let re = self.get_regex() as &regex::Regex; let _ = discard_empty;
         if gaps {
             let parts: Vec<String> = re.split(text).map(|s| s.to_string()).collect();
             if self.discard_empty {
@@ -44,7 +45,7 @@ impl RegexpTokenizer {
 
     pub fn span_tokenize(&mut self, text: &str) -> Vec<(usize, usize)> {
         let gaps = self.gaps;
-        let re = self.get_regex().clone();
+        let re = self.get_regex() as &regex::Regex;
         if gaps {
             let mut out = Vec::new();
             let mut left = 0usize;
