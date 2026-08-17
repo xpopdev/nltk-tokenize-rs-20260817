@@ -58,9 +58,9 @@ pub fn align_tokens(tokens: &[String], sentence: &str) -> Vec<(usize, usize)> {
     let mut point = 0usize;
     let mut out = Vec::new();
     for tok in tokens {
-        let rel = sentence[point..].find(tok.as_str()).unwrap_or_else(|| {
-            panic!("substring \"{tok}\" not found in \"{sentence}\"")
-        });
+        let rel = sentence[point..]
+            .find(tok.as_str())
+            .unwrap_or_else(|| panic!("substring \"{tok}\" not found in \"{sentence}\""));
         let start = point + rel;
         // need char-index vs byte-index: Python indices are char offsets
         // sentence[..start].chars().count() is not needed because sentence is &str and find returns byte offset but Python returns char offset.
@@ -89,35 +89,37 @@ impl NLTKWordTokenizer {
         // Match ' + word char, then filter out excluded clitics in Rust
         {
             let re = Regex::new(r"(?i)'(\w)\b").unwrap();
-            let excludes = ["re","ve","ll","m","t","s","d","n"];
-            s = re.replace_all(&s, |caps: &regex::Captures| {
-                let ch = caps.get(1).unwrap().as_str();
-                // Look ahead: if the word starting here is in excludes, don't split
-                // Recreate original lookahead semantics: check following word slice
-                let start = caps.get(0).unwrap().start();
-                // Extract the word that starts at ch position to test against excludes
-                // The capture is single char, but lookahead originally checks multi-char strings like "re"
-                // So we look at substring from ch onward up to word boundary
-                let rest = &s[start+1..];
-                let word_end = rest.find(|c: char| !c.is_alphanumeric()).unwrap_or(rest.len());
-                let word = rest[..word_end].to_lowercase();
-                if excludes.contains(&word.as_str()) {
-                    caps[0].to_string()
-                } else {
-                    format!("' {}", ch)
-                }
-            }).to_string();
+            let excludes = ["re", "ve", "ll", "m", "t", "s", "d", "n"];
+            s = re
+                .replace_all(&s, |caps: &regex::Captures| {
+                    let ch = caps.get(1).unwrap().as_str();
+                    // Look ahead: if the word starting here is in excludes, don't split
+                    // Recreate original lookahead semantics: check following word slice
+                    let start = caps.get(0).unwrap().start();
+                    // Extract the word that starts at ch position to test against excludes
+                    // The capture is single char, but lookahead originally checks multi-char strings like "re"
+                    // So we look at substring from ch onward up to word boundary
+                    let rest = &s[start + 1..];
+                    let word_end = rest
+                        .find(|c: char| !c.is_alphanumeric())
+                        .unwrap_or(rest.len());
+                    let word = rest[..word_end].to_lowercase();
+                    if excludes.contains(&word.as_str()) {
+                        caps[0].to_string()
+                    } else {
+                        format!("' {}", ch)
+                    }
+                })
+                .to_string();
         }
 
-        // PUNCTUATION — simplified for M1; full unicode quote handling deferred to later milestone
-        s = apply(&s, r"([^\.])(.)([\]\[\)}]*)\s*$", r"$1 $2 $3 ");
-        // Actually pattern above is complex; fallback: keep Python's exact patterns via simpler translations
-        // For M1 we use the five core punctuation patterns that cover most cases
+        // PUNCTUATION — mirrors nltk.tokenize.destructive.PUNCTUATION
+        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"'»”’]*)\s*$"#, r"$1 $2 $3 ");
         s = apply(&s, r"([:,])([^\d])", r" $1 $2");
         s = apply(&s, r"([:,])$", r" $1 ");
         s = apply(&s, r"\.{2,}", r" $0 ");
         s = apply(&s, r"[;@#$%&]", r" $0 ");
-        s = apply(&s, r#"([^\.])(.)([\]\[\)}]*)\s*$"#, r"$1 $2$3 ");
+        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"']*)\s*$"#, r"$1 $2$3 ");
         s = apply(&s, r"[?!]", r" $0 ");
         s = apply(&s, r"([^'])' ", r"$1 ' ");
         s = apply(&s, r"[*]", r" $0 ");
