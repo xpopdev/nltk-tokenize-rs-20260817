@@ -59,15 +59,7 @@ pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     if pattern == r"\s+" {
         // fast whitespace spans without regex engine
         if s.is_ascii() {
-            let mut out = Vec::new();
-            let mut left = 0usize;
-            let bytes = s.as_bytes();
-            for i, &b in bytes.iter().enumerate() {
-                let is_ws = b == b' ' || b == b'\t' || b == b'\n' || b == b'\r';
-                // use split logic: spans are gaps between \s+
-                // mimic WhitespaceTokenizer span logic: tokens are non-ws runs
-            }
-            // reuse manual scan: collect token spans (non-ws)
+            // collect token spans (non-ws) without regex
             let mut out2 = Vec::new();
             let mut char_idx = 0usize;
             let mut in_tok = false;
