@@ -85,20 +85,20 @@ mod tests {
     #[test]
     fn legality_basic() {
         assert_eq!(
-            LegalityPrincipleTokenizer::default().tokenize("hello world"),
+            TokenizerI::tokenize(&LegalityPrincipleTokenizer, "hello world"),
             vec!["hello", "world"]
         );
     }
     #[test]
     fn sonority_basic() {
         assert_eq!(
-            SonoritySequencingTokenizer::default().tokenize("a b"),
+            TokenizerI::tokenize(&SonoritySequencingTokenizer::default(), "a b"),
             vec!["a", "b"]
         );
     }
     #[test]
     fn texttiling_basic() {
         let t = TextTilingTokenizer::default();
-        assert!(!t.tokenize("para one\n\npara two").is_empty());
+        assert!(!TokenizerI::tokenize(&t, "para one\n\npara two").is_empty());
     }
 }
