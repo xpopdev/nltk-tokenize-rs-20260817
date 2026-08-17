@@ -85,7 +85,29 @@ impl NLTKWordTokenizer {
         s = apply(&s, "^\"", r"``");
         s = apply(&s, r"(``)", r" $1 ");
         s = apply(&s, r##"([ \(\[{<])("|'{2})"##, r"$1 `` ");
-        s = apply(&s, r"(?i)(')(?!re|ve|ll|m|t|s|d|n)(\w)\b", r"$1 $2");
+        // Rewrite of (?i)(')(?!re|ve|ll|m|t|s|d|n)(\w)\b — Rust regex has no lookahead
+        // Match ' + word char, then filter out excluded clitics in Rust
+        {
+            let re = Regex::new(r"(?i)'(\w)\b").unwrap();
+            let excludes = ["re","ve","ll","m","t","s","d","n"];
+            s = re.replace_all(&s, |caps: &regex::Captures| {
+                let ch = caps.get(1).unwrap().as_str();
+                // Look ahead: if the word starting here is in excludes, don't split
+                // Recreate original lookahead semantics: check following word slice
+                let start = caps.get(0).unwrap().start();
+                // Extract the word that starts at ch position to test against excludes
+                // The capture is single char, but lookahead originally checks multi-char strings like "re"
+                // So we look at substring from ch onward up to word boundary
+                let rest = &s[start+1..];
+                let word_end = rest.find(|c: char| !c.is_alphanumeric()).unwrap_or(rest.len());
+                let word = rest[..word_end].to_lowercase();
+                if excludes.contains(&word.as_str()) {
+                    caps[0].to_string()
+                } else {
+                    format!("' {}", ch)
+                }
+            }).to_string();
+        }
 
         // PUNCTUATION — simplified for M1; full unicode quote handling deferred to later milestone
         s = apply(&s, r"([^\.])(.)([\]\[\)}]*)\s*$", r"$1 $2 $3 ");
