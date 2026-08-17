@@ -4,9 +4,12 @@ use pyo3::prelude::*;
 pub mod api;
 pub mod casual;
 pub mod destructive;
+pub mod mwe;
 pub mod punkt;
 pub mod regexp;
+pub mod sexpr;
 pub mod simple;
+pub mod toktok;
 pub mod treebank;
 pub mod util;
 
@@ -122,6 +125,28 @@ fn casual_tokenize_py(
     ))
 }
 
+#[pyfunction]
+fn toktok_tokenize_py(text: String) -> PyResult<Vec<String>> {
+    Ok(crate::toktok::toktok_tokenize(&text))
+}
+
+#[pyfunction]
+fn mwe_tokenize_py(
+    tokens: Vec<String>,
+    mwes: Vec<Vec<String>>,
+    separator: String,
+) -> PyResult<Vec<String>> {
+    let tok = crate::mwe::MWETokenizer::new(mwes, &separator);
+    Ok(tok.tokenize(&tokens))
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, parens="()".to_string(), strict=true))]
+fn sexpr_tokenize_py(text: String, parens: String, strict: bool) -> PyResult<Vec<String>> {
+    let tok = crate::sexpr::SExprTokenizer::new(&parens, strict);
+    Ok(tok.tokenize(&text))
+}
+
 #[pymodule]
 fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(add, m)?)?;
@@ -137,6 +162,9 @@ fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(xml_unescape_py, m)?)?;
     m.add_function(wrap_pyfunction!(align_tokens_py, m)?)?;
     m.add_function(wrap_pyfunction!(casual_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(toktok_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(mwe_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(sexpr_tokenize_py, m)?)?;
     Ok(())
 }
 
