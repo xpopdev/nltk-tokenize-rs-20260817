@@ -228,7 +228,6 @@ impl TextTilingTokenizer {
         }
         // Simplified Tiling: sliding window cosine over term frequencies
         // For speed, use a lightweight scoring without full TF-IDF
-        let mut boundaries = Vec::new();
         let vocab: HashSet<&str> = tokens.iter().copied().collect();
         let vocab_list: Vec<&str> = vocab.into_iter().collect();
         let vocab_idx: HashMap<&str, usize> = vocab_list.iter().enumerate().map(|(i, &w)| (w, i)).collect();
