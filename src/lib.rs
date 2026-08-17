@@ -12,6 +12,7 @@ pub fn add_core(a: i64, b: i64) -> i64 { a + b }
 fn add(a: i64, b: i64) -> PyResult<i64> { Ok(add_core(a, b)) }
 
 #[pyfunction]
+#[pyo3(signature = (text, convert_parentheses=None))]
 fn word_tokenize(text: String, convert_parentheses: Option<bool>) -> PyResult<Vec<String>> {
     Ok(NLTKWordTokenizer::tokenize_core(&text, convert_parentheses.unwrap_or(false)))
 }
