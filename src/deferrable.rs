@@ -22,15 +22,13 @@ impl LegalityPrincipleTokenizer {
         let mut counter: HashMap<String, usize> = HashMap::new();
         for w in words {
             let onset = self.onset(w);
-            if !onset.is_empty() {
-                *counter.entry(onset).or_insert(0) += 1;
-            }
+            *counter.entry(onset).or_insert(0) += 1;
         }
-        let total: usize = counter.values().sum::<usize>().max(1);
+        let total = words.len().max(1);
         let threshold = 0.001;
         counter
             .into_iter()
-            .filter(|(_, c)| (*c as f64 / total as f64) >= threshold)
+            .filter(|(k, c)| !k.is_empty() && (*c as f64 / total as f64) > threshold)
             .map(|(k, _)| k)
             .collect()
     }
@@ -48,66 +46,46 @@ impl LegalityPrincipleTokenizer {
 
     pub fn tokenize_word(&self, word: &str) -> Vec<String> {
         if word.is_empty() {
-            return vec![];
+            return vec!["".to_string()];
         }
         if word.chars().all(|c| !c.is_alphabetic()) {
             return vec![word.to_string()];
         }
-        // Find vowel positions, then try maximal legal onset for each syllable
+        // Mirror NLTK's LegalitySyllableTokenizer.tokenize: iterate reversed,
+        // building syllables backwards then reverse at the end.
         let chars: Vec<char> = word.chars().collect();
         let is_vowel = |c: char| self.vowels.contains(c.to_ascii_lowercase());
-        let vowel_positions: Vec<usize> = chars
-            .iter()
-            .enumerate()
-            .filter(|(_, &c)| is_vowel(c))
-            .map(|(i, _)| i)
-            .collect();
-        if vowel_positions.is_empty() {
-            return vec![word.to_string()];
-        }
-        let mut syllables = Vec::new();
-        let mut start = 0usize;
-        for (vi, &vpos) in vowel_positions.iter().enumerate() {
-            let next_vpos = vowel_positions.get(vi + 1).copied();
-            let end = if let Some(nv) = next_vpos {
-                // Find maximal legal onset in the inter-vowel cluster
-                let cluster_start = vpos + 1;
-                let cluster_end = nv;
-                let cluster: String = chars[cluster_start..cluster_end].iter().collect();
-                let mut best = 0usize;
-                for k in (0..=cluster.len()).rev() {
-                    let candidate = cluster[cluster.len() - k..].to_lowercase();
-                    if candidate.is_empty() || self.legal_onsets.contains(&candidate) {
-                        best = k;
-                        break;
-                    }
-                }
-                // Also try maximal legal: prefer longest legal onset
-                // If none legal, split in middle
-                if best == 0 && !cluster.is_empty() {
-                    best = cluster.len() / 2;
-                }
-                cluster_end - best
+        let mut syllables: Vec<String> = Vec::new();
+        let mut syllable = String::new();
+        let mut current_onset = String::new();
+        let mut vowel = false;
+        let mut onset = false;
+        for &ch in chars.iter().rev() {
+            let ch_lower = ch.to_ascii_lowercase();
+            if !vowel {
+                syllable.push(ch);
+                vowel = is_vowel(ch);
             } else {
-                chars.len()
-            };
-            let syl: String = chars[start..end].iter().collect();
-            if !syl.is_empty() {
-                syllables.push(syl);
-            }
-            start = end;
-            if start >= chars.len() { break; }
-        }
-        if start < chars.len() {
-            let tail: String = chars[start..].iter().collect();
-            if !tail.is_empty() {
-                if let Some(last) = syllables.last_mut() {
-                    last.push_str(&tail);
+                let candidate = format!("{}{}", ch_lower, current_onset.chars().rev().collect::<String>());
+                if self.legal_onsets.contains(&candidate) {
+                    syllable.push(ch);
+                    current_onset.push(ch_lower);
+                    onset = true;
+                } else if is_vowel(ch) && !onset {
+                    syllable.push(ch);
+                    current_onset.push(ch_lower);
                 } else {
-                    syllables.push(tail);
+                    syllables.push(syllable.chars().rev().collect());
+                    syllable = ch.to_string();
+                    current_onset = String::new();
+                    vowel = is_vowel(ch);
+                    onset = false;
                 }
             }
         }
+        syllables.push(syllable.chars().rev().collect());
+        syllables.reverse();
+        syllables.retain(|s| !s.is_empty());
         if syllables.is_empty() { vec![word.to_string()] } else { syllables }
     }
 }
@@ -162,7 +140,7 @@ impl SonoritySequencingTokenizer {
     }
 
     pub fn tokenize_word(&self, word: &str) -> Vec<String> {
-        if word.is_empty() { return vec![]; }
+        if word.is_empty() { return vec!["".to_string()]; }
         if word.chars().all(|c| !c.is_alphabetic()) { return vec![word.to_string()]; }
         let chars: Vec<char> = word.chars().collect();
         if chars.len() <= 3 { return vec![word.to_string()]; }

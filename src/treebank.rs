@@ -15,9 +15,9 @@ pub fn sent_tokenize_placeholder(text: &str) -> Vec<String> {
 }
 
 static DT_RE_C3: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"([^' ])('[sS]|'[mM]|'[dD]|') ").unwrap());
+    LazyLock::new(|| Regex::new(r"([^' ])\s('[sS]|'[mM]|'[dD]|') ").unwrap());
 static DT_RE_C2: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ").unwrap());
+    LazyLock::new(|| Regex::new(r"([^' ])\s('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ").unwrap());
 static DT_RE_END3: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\S)\s('')").unwrap());
 static DT_RE_END4: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"('')\s([.,:)\]>};%])").unwrap());
