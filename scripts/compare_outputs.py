@@ -283,13 +283,13 @@ def _try_import_pairs():
             pass
         try:
             from nltk.corpus import words as nltk_words
-            _leg_orig = LegNLTK(nltk_words.words()[:5000])
+            _leg_words = nltk_words.words()[:5000]
+            _leg_orig = LegNLTK(_leg_words)
             def orig_leg(word, **kw):
                 return _leg_orig.tokenize(word)
             def ported_leg(word, **kw):
-                # use corpus-aware port if available
                 try:
-                    return ported_lib.legality_tokenize_with_corpus_py(word, nltk_words.words()[:5000], vowels=kw.get("vowels", "aeiouy"))
+                    return ported_lib.legality_tokenize_with_corpus_py(word, _leg_words, vowels=kw.get("vowels", "aeiouy"))
                 except Exception:
                     return ported_lib.legality_tokenize_py(word, vowels=kw.get("vowels", "aeiouy"))
             FUNCTION_PAIRS["legality_tokenize"] = (orig_leg, ported_leg)

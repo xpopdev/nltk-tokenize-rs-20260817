@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use crate::api::TokenizerI;
 
 // ── Legality Principle ──
+#[derive(Clone)]
 pub struct LegalityPrincipleTokenizer {
     vowels: String,
     legal_onsets: HashSet<String>,

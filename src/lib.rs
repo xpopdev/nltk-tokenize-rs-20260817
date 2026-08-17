@@ -1,5 +1,7 @@
 #![allow(clippy::useless_conversion)]
 use pyo3::prelude::*;
+use std::collections::HashMap;
+use std::sync::{LazyLock, RwLock};
 
 pub mod api;
 pub mod casual;
@@ -179,8 +181,7 @@ fn blankline_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
 #[pyfunction]
 fn wordpunct_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
     py.allow_threads(|| {
-        let mut t = crate::regexp::WordPunctTokenizer::new();
-        Ok(t.tokenize(text))
+        Ok(crate::regexp::WordPunctTokenizer::new().tokenize(text))
     })
 }
 
@@ -234,10 +235,16 @@ fn texttiling_tokenize_py(py: Python, text: &str, w: usize, k: usize) -> PyResul
 #[pyfunction]
 #[pyo3(signature = (text, corpus, vowels="aeiouy".to_string()))]
 fn legality_tokenize_with_corpus_py(py: Python, text: &str, corpus: Vec<String>, vowels: String) -> PyResult<Vec<String>> {
-    py.allow_threads(|| {
-        let t = crate::deferrable::LegalityPrincipleTokenizer::new(corpus, &vowels);
-        Ok(crate::api::TokenizerI::tokenize(&t, text))
-    })
+    static CACHE: LazyLock<RwLock<HashMap<String, crate::deferrable::LegalityPrincipleTokenizer>>> =
+        LazyLock::new(|| RwLock::new(HashMap::new()));
+    let key = format!("{}:{}", vowels, corpus.len());
+    if let Some(result) = CACHE.read().unwrap().get(&key).map(|t| crate::api::TokenizerI::tokenize(t, text)) {
+        return Ok(result);
+    }
+    let t = crate::deferrable::LegalityPrincipleTokenizer::new(corpus.clone(), &vowels);
+    let result = crate::api::TokenizerI::tokenize(&t, text);
+    CACHE.write().unwrap().insert(key, t);
+    Ok(result)
 }
 
 #[pymodule]

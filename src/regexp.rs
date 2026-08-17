@@ -7,6 +7,7 @@ use crate::regex_cache::cached_regex;
 static RE_WS_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
 static RE_WORD_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\w+").unwrap());
 static RE_DIGIT_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\d+").unwrap());
+static RE_WORDPUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\w+|[^\w\s]+").unwrap());
 
 pub struct RegexpTokenizer {
     pattern: String,
@@ -105,13 +106,13 @@ impl Default for BlanklineTokenizer {
     }
 }
 
-pub struct WordPunctTokenizer(RegexpTokenizer);
+pub struct WordPunctTokenizer;
 impl WordPunctTokenizer {
     pub fn new() -> Self {
-        Self(RegexpTokenizer::new(r"\w+|[^\w\s]+", false, true))
+        Self
     }
-    pub fn tokenize(&mut self, s: &str) -> Vec<String> {
-        self.0.tokenize(s)
+    pub fn tokenize(&self, s: &str) -> Vec<String> {
+        RE_WORDPUNCT.find_iter(s).map(|m| m.as_str().to_string()).collect()
     }
 }
 impl Default for WordPunctTokenizer {
@@ -140,6 +141,9 @@ pub fn regexp_tokenize(text: &str, pattern: &str, gaps: bool, discard_empty: boo
         }
         r"\d+" if !gaps => {
             return RE_DIGIT_FAST.find_iter(text).map(|m| m.as_str().to_string()).collect();
+        }
+        r"\w+|[^\w\s]+" if !gaps => {
+            return RE_WORDPUNCT.find_iter(text).map(|m| m.as_str().to_string()).collect();
         }
         _ => {}
     }
