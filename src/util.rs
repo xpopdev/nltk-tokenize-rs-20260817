@@ -59,6 +59,7 @@ pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     if pattern == r"\s+" {
         // fast whitespace spans without regex engine
         if s.is_ascii() {
+            if s.is_empty() { return vec![(0, 0)]; }
             // collect token spans (non-ws) without regex
             let mut out2 = Vec::new();
             let mut char_idx = 0usize;
