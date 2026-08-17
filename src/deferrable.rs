@@ -87,8 +87,7 @@ impl LegalityPrincipleTokenizer {
                 if best == 0 && !cluster.is_empty() {
                     best = cluster.len() / 2;
                 }
-                let syllable_end = cluster_end - best;
-                syllable_end
+                cluster_end - best
             } else {
                 chars.len()
             };
@@ -174,11 +173,9 @@ impl SonoritySequencingTokenizer {
             // trough: sonority[i] < sonority[i-1] && sonority[i] <= sonority[i+1]
             // and not inside vowel cluster
             let is_vowel = |c: char| self.vowels.contains(c.to_ascii_lowercase());
-            if sonorities[i] < sonorities[i - 1] && sonorities[i] <= sonorities[i + 1] {
-                if !is_vowel(chars[i]) {
+            if sonorities[i] < sonorities[i - 1] && sonorities[i] <= sonorities[i + 1] && !is_vowel(chars[i]) {
                     breaks.push(i);
                 }
-            }
         }
         if breaks.is_empty() { return vec![word.to_string()]; }
         let mut out = Vec::new();
