@@ -301,6 +301,92 @@ def _sexpr_cases(size: str) -> Iterator[Case]:
     yield Case(label="single", args=("(a b)",))
     yield Case(label="nested", args=("((a b) (c d))",))
 
+@register("detokenize")
+def _detokenize_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("simple", (["Hello", ",", "world", "."],)),
+        ("contraction", (["I", "ca", "n't", "go"],)),
+        ("parens", (["Hello", "(", "world", ")"],)),
+        ("quotes", (["He", "said", "``", "hi", "''", "."],)),
+        ("empty", ([],)),
+        ("single", (["hello"],)),
+        ("dashes", (["a", "--", "b"],)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+    if size == "full":
+        yield Case(label="convert_parens", args=(["Hello", "-LRB-", "world", "-RRB-"],), kwargs={"convert_parentheses": True})
+
+@register("space_tokenize")
+def _space_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "a b c"), ("empty", ""), ("no_space", "hello"), ("double", "a  b"), ("unicode", "a b café"), ("tabs_newlines", "a b\tc\nd")]:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        yield Case(label="long", args=(" ".join(["hello"] * 50),))
+
+@register("tab_tokenize")
+def _tab_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "a\tb\tc"), ("empty", ""), ("no_tab", "hello world"), ("spaces", "a b c")]:
+        yield Case(label=label, args=(text,))
+
+@register("char_tokenize")
+def _char_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "abc"), ("empty", ""), ("unicode", "café"), ("emoji", "a😀b"), ("space", "a b")]:
+        yield Case(label=label, args=(text,))
+
+@register("line_tokenize")
+def _line_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "a\nb\nc"), ("empty", ""), ("blank_keep", "a\n\nb"), ("single", "hello"), ("trailing", "a\nb\n")]:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        yield Case(label="blank_discard", args=("a\n\nb\n",), kwargs={"blanklines": "discard"})
+        yield Case(label="blank_keep_mode", args=("a\n\nb\n",), kwargs={"blanklines": "keep"})
+
+@register("blankline_tokenize")
+def _blankline_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "a\n\nb\n\nc"), ("empty", ""), ("no_blank", "a\nb\nc"), ("single_para", "hello world")]:
+        yield Case(label=label, args=(text,))
+
+@register("wordpunct_tokenize")
+def _wordpunct_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "Hello, world."), ("empty", ""), ("unicode", "café naïve"), ("numbers", "cost $3.88"), ("parens", "a (b) c")]:
+        yield Case(label=label, args=(text,))
+
+@register("whitespace_tokenize")
+def _whitespace_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "a b\tc\nd"), ("empty", ""), ("single", "hello"), ("unicode", "a b café"), ("multi", "  hello   world  ")]:
+        yield Case(label=label, args=(text,))
+
+@register("nist_tokenize")
+def _nist_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "Good muffins cost $3.88 in New York."), ("empty", ""), ("lower", "Hello World"), ("numbers", "Cost $5"), ("unicode", "café naïve")]:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        yield Case(label="lowercase", args=("Hello World",), kwargs={"lowercase": True})
+        yield Case(label="no_western", args=("Hello World",), kwargs={"western_lang": False})
+
+@register("nist_international_tokenize")
+def _nist_intl_cases(size: str) -> Iterator[Case]:
+    for label, text in [("western", "Hello world."), ("empty", ""), ("lower", "Hello World"), ("cjk", "Hello 阿里巴巴 world")]:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        yield Case(label="lowercase", args=("Hello World",), kwargs={"lowercase": True})
+
+@register("legality_tokenize")
+def _legality_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "wonderful"), ("empty", ""), ("short", "a"), ("nonalpha", "123")]:
+        yield Case(label=label, args=(text,))
+
+@register("sonority_tokenize")
+def _sonority_cases(size: str) -> Iterator[Case]:
+    for label, text in [("basic", "justification"), ("empty", ""), ("short", "a"), ("nonalpha", "123")]:
+        yield Case(label=label, args=(text,))
+
+@register("texttiling_tokenize")
+def _texttiling_cases(size: str) -> Iterator[Case]:
+    for label, text in [("paras", "para one\n\npara two\n\npara three"), ("empty", ""), ("single", "Hello world"), ("short", "a b c")]:
+        yield Case(label=label, args=(text,))
+
 
 # Keep example for backward compat — filter to i64-range to avoid Rust wrapping vs Python bigint divergence
 @register("example.add")

@@ -200,6 +200,119 @@ def _try_import_pairs():
     except ImportError:
         pass
 
+    # detokenize (treebank)
+    try:
+        import ported_lib
+        from nltk.tokenize.treebank import TreebankWordDetokenizer
+        _orig_detok = TreebankWordDetokenizer()
+        def orig_detok(tokens, **kw):
+            return _orig_detok.detokenize(tokens, convert_parentheses=kw.get("convert_parentheses", False))
+        def ported_detok(tokens, **kw):
+            return ported_lib.detokenize_py(tokens, convert_parentheses=kw.get("convert_parentheses", False))
+        FUNCTION_PAIRS["detokenize"] = (orig_detok, ported_detok)
+    except ImportError:
+        pass
+
+    # simple tokenizers
+    try:
+        import ported_lib
+        from nltk.tokenize.simple import SpaceTokenizer, TabTokenizer, CharTokenizer, LineTokenizer
+        from nltk.tokenize import LineTokenizer as LT2  # same
+        def orig_space(text, **kw): return SpaceTokenizer().tokenize(text)
+        def ported_space(text, **kw): return ported_lib.space_tokenize_py(text)
+        FUNCTION_PAIRS["space_tokenize"] = (orig_space, ported_space)
+        def orig_tab(text, **kw): return TabTokenizer().tokenize(text)
+        def ported_tab(text, **kw): return ported_lib.tab_tokenize_py(text)
+        FUNCTION_PAIRS["tab_tokenize"] = (orig_tab, ported_tab)
+        def orig_char(text, **kw): return CharTokenizer().tokenize(text)
+        def ported_char(text, **kw): return ported_lib.char_tokenize_py(text)
+        FUNCTION_PAIRS["char_tokenize"] = (orig_char, ported_char)
+        def orig_line(text, **kw): return LineTokenizer(blanklines=kw.get("blanklines", "discard")).tokenize(text)
+        def ported_line(text, **kw): return ported_lib.line_tokenize_py(text, blanklines=kw.get("blanklines", "discard"))
+        FUNCTION_PAIRS["line_tokenize"] = (orig_line, ported_line)
+    except ImportError:
+        pass
+
+    # regexp tokenizers (simple wrappers)
+    try:
+        import ported_lib
+        from nltk.tokenize import BlanklineTokenizer, WordPunctTokenizer, WhitespaceTokenizer
+        def orig_blank(text, **kw): return BlanklineTokenizer().tokenize(text)
+        def ported_blank(text, **kw): return ported_lib.blankline_tokenize_py(text)
+        FUNCTION_PAIRS["blankline_tokenize"] = (orig_blank, ported_blank)
+        def orig_wpunct(text, **kw): return WordPunctTokenizer().tokenize(text)
+        def ported_wpunct(text, **kw): return ported_lib.wordpunct_tokenize_py(text)
+        FUNCTION_PAIRS["wordpunct_tokenize"] = (orig_wpunct, ported_wpunct)
+        def orig_ws(text, **kw): return WhitespaceTokenizer().tokenize(text)
+        def ported_ws(text, **kw): return ported_lib.whitespace_tokenize_py(text)
+        FUNCTION_PAIRS["whitespace_tokenize"] = (orig_ws, ported_ws)
+    except ImportError:
+        pass
+
+    # nist
+    try:
+        import ported_lib
+        from nltk.tokenize.nist import NISTTokenizer
+        _orig_nist = NISTTokenizer()
+        def orig_nist(text, **kw):
+            return _orig_nist.tokenize(text, lowercase=kw.get("lowercase", False), western_lang=kw.get("western_lang", True), return_str=False)
+        def ported_nist(text, **kw):
+            return ported_lib.nist_tokenize_py(text, lowercase=kw.get("lowercase", False), western_lang=kw.get("western_lang", True))
+        FUNCTION_PAIRS["nist_tokenize"] = (orig_nist, ported_nist)
+        def orig_nist_intl(text, **kw):
+            return _orig_nist.international_tokenize(text, lowercase=kw.get("lowercase", False), return_str=False)
+        def ported_nist_intl(text, **kw):
+            return ported_lib.nist_international_tokenize_py(text, lowercase=kw.get("lowercase", False))
+        FUNCTION_PAIRS["nist_international_tokenize"] = (orig_nist_intl, ported_nist_intl)
+    except ImportError:
+        pass
+
+    # legality / sonority / texttiling — compare via TokenizerI path where NLTK needs corpus
+    try:
+        import ported_lib
+        from nltk.tokenize.legality_principle import LegalitySyllableTokenizer as LegNLTK
+        import nltk
+        try:
+            nltk.download("words", quiet=True)
+        except Exception:
+            pass
+        try:
+            from nltk.corpus import words as nltk_words
+            _leg_orig = LegNLTK(nltk_words.words()[:5000])
+            def orig_leg(word, **kw):
+                return _leg_orig.tokenize(word)
+            def ported_leg(word, **kw):
+                # use corpus-aware port if available
+                try:
+                    return ported_lib.legality_tokenize_with_corpus_py(word, nltk_words.words()[:5000], vowels=kw.get("vowels", "aeiouy"))
+                except Exception:
+                    return ported_lib.legality_tokenize_py(word, vowels=kw.get("vowels", "aeiouy"))
+            FUNCTION_PAIRS["legality_tokenize"] = (orig_leg, ported_leg)
+        except Exception:
+            pass
+    except ImportError:
+        pass
+
+    try:
+        import ported_lib
+        from nltk.tokenize.sonority_sequencing import SyllableTokenizer as SonNLTK
+        _son_orig = SonNLTK()
+        def orig_son(word, **kw): return _son_orig.tokenize(word)
+        def ported_son(word, **kw): return ported_lib.sonority_tokenize_py(word)
+        FUNCTION_PAIRS["sonority_tokenize"] = (orig_son, ported_son)
+    except ImportError:
+        pass
+
+    try:
+        import ported_lib
+        from nltk.tokenize.texttiling import TextTilingTokenizer as TTNLTK
+        _tt_orig = TTNLTK(w=20, k=10)
+        def orig_tt(text, **kw): return _tt_orig.tokenize(text)
+        def ported_tt(text, **kw): return ported_lib.texttiling_tokenize_py(text, w=kw.get("w", 20), k=kw.get("k", 10))
+        FUNCTION_PAIRS["texttiling_tokenize"] = (orig_tt, ported_tt)
+    except ImportError:
+        pass
+
 
 @dataclass
 class Row:
