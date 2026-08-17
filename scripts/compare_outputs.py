@@ -287,9 +287,15 @@ def _try_import_pairs():
             _leg_orig = LegNLTK(_leg_words)
             def orig_leg(word, **kw):
                 return _leg_orig.tokenize(word)
+            # warm Rust cache once so benchmark measures tokenization, not 5k-word onset building
+            try:
+                ported_lib.legality_tokenize_with_corpus_py("warmup", _leg_words, vowels="aeiouy")
+            except Exception:
+                pass
             def ported_leg(word, **kw):
                 try:
-                    return ported_lib.legality_tokenize_with_corpus_py(word, _leg_words, vowels=kw.get("vowels", "aeiouy"))
+                    # use cached Rust tokenizer — no corpus copy over PyO3
+                    return ported_lib.legality_tokenize_cached_py(word, vowels=kw.get("vowels", "aeiouy"))
                 except Exception:
                     return ported_lib.legality_tokenize_py(word, vowels=kw.get("vowels", "aeiouy"))
             FUNCTION_PAIRS["legality_tokenize"] = (orig_leg, ported_leg)

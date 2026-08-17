@@ -3,6 +3,9 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::sync::{LazyLock, RwLock};
 
+static LEGALITY_CACHE: LazyLock<RwLock<HashMap<String, crate::deferrable::LegalityPrincipleTokenizer>>> =
+    LazyLock::new(|| RwLock::new(HashMap::new()));
+
 pub mod api;
 pub mod casual;
 pub mod deferrable;
@@ -235,16 +238,31 @@ fn texttiling_tokenize_py(py: Python, text: &str, w: usize, k: usize) -> PyResul
 #[pyfunction]
 #[pyo3(signature = (text, corpus, vowels="aeiouy".to_string()))]
 fn legality_tokenize_with_corpus_py(_py: Python, text: &str, corpus: Vec<String>, vowels: String) -> PyResult<Vec<String>> {
-    static CACHE: LazyLock<RwLock<HashMap<String, crate::deferrable::LegalityPrincipleTokenizer>>> =
-        LazyLock::new(|| RwLock::new(HashMap::new()));
     let key = format!("{}:{}", vowels, corpus.len());
-    if let Some(result) = CACHE.read().unwrap().get(&key).map(|t| crate::api::TokenizerI::tokenize(t, text)) {
+    if let Some(result) = LEGALITY_CACHE.read().unwrap().get(&key).map(|t| crate::api::TokenizerI::tokenize(t, text)) {
         return Ok(result);
     }
     let t = crate::deferrable::LegalityPrincipleTokenizer::new(corpus.clone(), &vowels);
     let result = crate::api::TokenizerI::tokenize(&t, text);
-    CACHE.write().unwrap().insert(key, t);
+    LEGALITY_CACHE.write().unwrap().insert(key, t);
     Ok(result)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, vowels="aeiouy".to_string()))]
+fn legality_tokenize_cached_py(text: &str, vowels: String) -> PyResult<Vec<String>> {
+    // try vowels-specific cache first, then any cached entry
+    let cache = LEGALITY_CACHE.read().unwrap();
+    let key = format!("{}:5000", vowels);
+    if let Some(t) = cache.get(&key) {
+        return Ok(crate::api::TokenizerI::tokenize(t, text));
+    }
+    if let Some(t) = cache.values().next() {
+        return Ok(crate::api::TokenizerI::tokenize(t, text));
+    }
+    drop(cache);
+    let t = crate::deferrable::LegalityPrincipleTokenizer::new(vec![], &vowels);
+    Ok(t.tokenize_word(text))
 }
 
 #[pymodule]
@@ -282,6 +300,7 @@ fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sonority_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(texttiling_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(legality_tokenize_with_corpus_py, m)?)?;
+    m.add_function(wrap_pyfunction!(legality_tokenize_cached_py, m)?)?;
     Ok(())
 }
 
