@@ -61,7 +61,7 @@ def main():
         if fn_key not in FUNCTION_PAIRS:
             continue
         _, ported_cpu = FUNCTION_PAIRS[fn_key]
-        texts = [c.args[0] for c in cases_for(fn_key, size="smoke")[:20] if c.args and isinstance(c.args[0], str)]
+        texts = [c.args[0] for c in list(cases_for(fn_key, size="smoke"))[:20] if c.args and isinstance(c.args[0], str)]
         if not texts:
             continue
         total += 1
