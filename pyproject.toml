@@ -10,6 +10,18 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "Apache-2.0" }
 keywords = ["nltk", "tokenize", "rust", "pyo3", "nlp"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Rust",
+  "Intended Audience :: Science/Research",
+  "Topic :: Text Processing :: Linguistic",
+  "Operating System :: OS Independent",
+]
 dependencies = ["nltk>=3.9"]
 
 [project.optional-dependencies]
@@ -19,3 +31,13 @@ dev = ["pytest", "hypothesis", "nltk"]
 module-name = "ported_lib"
 features = ["pyo3/extension-module"]
 bindings = "pyo3"
+sdist-include = ["src/**/*.rs", "Cargo.toml", "Cargo.lock", "README.md", "LICENSE*"]
+
+[tool.cibuildwheel]
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = ["pp*", "*-musllinux*"]
+manylinux-x86_64-image = "manylinux_2_28"
+manylinux-aarch64-image = "manylinux_2_28"
+archs = ["auto64"]
+test-command = "python -c \"import ported_lib; print(ported_lib.word_tokenize('Hello world'))\""
+test-requires = ["nltk", "pytest"]
