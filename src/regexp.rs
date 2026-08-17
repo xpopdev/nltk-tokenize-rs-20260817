@@ -1,5 +1,7 @@
 use regex::Regex;
 
+use crate::regex_cache::cached_regex;
+
 pub struct RegexpTokenizer {
     pattern: String,
     gaps: bool,
@@ -20,9 +22,7 @@ impl RegexpTokenizer {
     fn get_regex(&mut self) -> &Regex {
         if self.regex.is_none() {
             let pat = self.pattern.clone();
-            self.regex = Some(
-                Regex::new(&pat).unwrap_or_else(|e| panic!("bad regexp {}: {}", self.pattern, e)),
-            );
+            self.regex = Some(cached_regex(&pat));
         }
         self.regex.as_ref().unwrap()
     }

@@ -1,10 +1,9 @@
-use regex::Regex;
-
 use crate::api::TokenizerI;
+use crate::regex_cache::cached_regex;
 
 fn apply(text: &str, pattern: &str, replacement: &str) -> String {
     let rust_repl = replacement.replace("\\1", "$1").replace("\\2", "$2");
-    let re = Regex::new(pattern).unwrap();
+    let re = cached_regex(pattern);
     re.replace_all(text, rust_repl.as_str()).to_string()
 }
 
@@ -89,7 +88,7 @@ fn tokenize_inner(text: &str) -> String {
     s = apply(&s, r"(-{2,})", " $1 ");
     s = apply(&s, r"(\.{2,})", " $1 ");
     if s.ends_with('.') && !s.ends_with("..") {
-        s = Regex::new(r"\.$").unwrap().replace(&s, " .").to_string();
+        s = cached_regex(r"\.$").replace(&s, " .").to_string();
     }
     s = apply(&s, r" {2,}", " ");
     s.trim().to_string()

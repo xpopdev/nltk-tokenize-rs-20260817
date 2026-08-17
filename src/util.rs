@@ -1,4 +1,4 @@
-use regex::Regex;
+use crate::regex_cache::cached_regex;
 
 pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
     if sep.is_empty() {
@@ -36,7 +36,7 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
 }
 
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
-    let re = Regex::new(pattern).unwrap();
+    let re = cached_regex(pattern);
     let mut out = Vec::new();
     let mut left_byte = 0usize;
     for m in re.find_iter(s) {

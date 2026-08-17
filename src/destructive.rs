@@ -1,4 +1,4 @@
-use regex::Regex;
+use crate::regex_cache::cached_regex;
 
 fn repl_python_to_rust(s: &str) -> String {
     let mut out = String::new();
@@ -31,7 +31,7 @@ fn repl_python_to_rust(s: &str) -> String {
 fn apply(text: &str, pattern: &str, replacement: &str) -> String {
     // Strip Python (?#...) comments
     let cleaned = strip_comments(pattern);
-    let re = Regex::new(&cleaned).unwrap_or_else(|e| panic!("bad pattern {pattern}: {e}"));
+    let re = cached_regex(&cleaned);
     let rust_repl = repl_python_to_rust(replacement);
     re.replace_all(text, rust_repl.as_str()).to_string()
 }
@@ -88,7 +88,7 @@ impl NLTKWordTokenizer {
         // Rewrite of (?i)(')(?!re|ve|ll|m|t|s|d|n)(\w)\b — Rust regex has no lookahead
         // Match ' + word char, then filter out excluded clitics in Rust
         {
-            let re = Regex::new(r"(?i)'(\w)\b").unwrap();
+            let re = cached_regex(r"(?i)'(\w)\b");
             let excludes = ["re", "ve", "ll", "m", "t", "s", "d", "n"];
             s = re
                 .replace_all(&s, |caps: &regex::Captures| {

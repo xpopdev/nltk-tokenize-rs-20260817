@@ -8,6 +8,7 @@ pub mod destructive;
 pub mod mwe;
 pub mod punkt;
 pub mod punkt_trainer;
+pub mod regex_cache;
 pub mod regexp;
 pub mod sexpr;
 pub mod simple;

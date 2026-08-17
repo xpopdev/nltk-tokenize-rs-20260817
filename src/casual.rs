@@ -1,6 +1,5 @@
-use regex::Regex;
-
 use crate::api::TokenizerI;
+use crate::regex_cache::cached_regex;
 
 fn html_unescape(text: &str) -> String {
     let mut s = text.to_string();
@@ -18,7 +17,7 @@ fn html_unescape(text: &str) -> String {
     for (ent, chr) in entities {
         s = s.replace(ent, chr);
     }
-    let numeric_re = Regex::new(r"&#(x?)([0-9a-fA-F]+);").unwrap();
+    let numeric_re = cached_regex(r"&#(x?)([0-9a-fA-F]+);");
     let s2 = numeric_re
         .replace_all(&s, |caps: &regex::Captures| {
             let is_hex = &caps[1] == "x" || &caps[1] == "X";
@@ -55,7 +54,7 @@ fn reduce_lengthening(text: &str) -> String {
 }
 
 fn remove_handles(text: &str) -> String {
-    let re = Regex::new(r"@\w{1,15}\b").unwrap();
+    let re = cached_regex(r"@\w{1,15}\b");
     let mut out = String::new();
     let mut last = 0usize;
     for m in re.find_iter(text) {
@@ -159,9 +158,9 @@ impl TweetTokenizer {
         }
     }
 
-    fn word_re(&self) -> Regex {
+    fn word_re(&self) -> regex::Regex {
         let pat = build_word_pattern(self.match_phone_numbers);
-        Regex::new(&pat).unwrap()
+        cached_regex(&pat)
     }
 
     pub fn tokenize(&self, text: &str) -> Vec<String> {
@@ -182,7 +181,7 @@ impl TweetTokenizer {
 
         if !self.preserve_case {
             let emoticon_re =
-                Regex::new(r"(?i)(?:[<>]?[:;=8][\-o\*']?[\)\]\(\[dDpP/:\}\{@\|\\]|[\)\]\(\[dDpP/:\}\{@\|\\][\-o\*']?[:;=8][<>]?|</?3)").unwrap();
+                cached_regex(r"(?i)(?:[<>]?[:;=8][\-o\*']?[\)\]\(\[dDpP/:\}\{@\|\\]|[\)\]\(\[dDpP/:\}\{@\|\\][\-o\*']?[:;=8][<>]?|</?3)");
             words = words
                 .into_iter()
                 .map(|w| {
