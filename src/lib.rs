@@ -2,6 +2,7 @@
 use pyo3::prelude::*;
 
 pub mod api;
+pub mod casual;
 pub mod destructive;
 pub mod punkt;
 pub mod regexp;
@@ -103,6 +104,24 @@ fn align_tokens_py(tokens: Vec<String>, sentence: String) -> PyResult<Vec<(usize
     Ok(crate::util::align_tokens(&tokens, &sentence))
 }
 
+#[pyfunction]
+#[pyo3(signature = (text, preserve_case=true, reduce_len=false, strip_handles=false, match_phone_numbers=true))]
+fn casual_tokenize_py(
+    text: String,
+    preserve_case: bool,
+    reduce_len: bool,
+    strip_handles: bool,
+    match_phone_numbers: bool,
+) -> PyResult<Vec<String>> {
+    Ok(crate::casual::casual_tokenize(
+        &text,
+        preserve_case,
+        reduce_len,
+        strip_handles,
+        match_phone_numbers,
+    ))
+}
+
 #[pymodule]
 fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(add, m)?)?;
@@ -117,6 +136,7 @@ fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(xml_escape_py, m)?)?;
     m.add_function(wrap_pyfunction!(xml_unescape_py, m)?)?;
     m.add_function(wrap_pyfunction!(align_tokens_py, m)?)?;
+    m.add_function(wrap_pyfunction!(casual_tokenize_py, m)?)?;
     Ok(())
 }
 
