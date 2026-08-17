@@ -27,24 +27,24 @@
     {
       "id": "M5",
       "title": "Toktok + MWE + SExpr",
-      "status": "in_progress"
+      "status": "done"
     },
     {
       "id": "M6",
       "title": "Legality / Sonority / TextTiling (deferrable)",
-      "status": "not_started"
+      "status": "done"
     },
     {
       "id": "M7",
       "title": "Punkt training (high-risk, may stay Python fallback)",
-      "status": "not_started"
+      "status": "done"
     }
   ],
   "last_ci_run": {
-    "id": 31998975876,
+    "id": 32001384840,
     "branch": "port/nltk-tokenize-2026-08-17",
     "mode": "full",
     "status": "success",
-    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/31998975876"
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32001384840"
   }
 }
