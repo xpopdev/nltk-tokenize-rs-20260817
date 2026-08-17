@@ -51,7 +51,8 @@ pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
         left_byte = next_byte;
     }
     out.push((byte_to_char[left_byte], byte_to_char[s.len()]));
-    out.retain(|(a,b)| !(a==b && out.len()>1));
+    let out_len = out.len();
+    out.retain(|(a,b)| !(a==b && out_len>1));
     out
 }
 
