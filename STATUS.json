@@ -4,13 +4,47 @@
   "branch": "port/nltk-tokenize-2026-08-17",
   "plan_approved": true,
   "milestones": [
-    {"id": "M1", "title": "NLTKWordTokenizer + Treebank (destructive.py/treebank.py)", "status": "done"},
-    {"id": "M2", "title": "Punkt inference — sent_tokenize / PunktSentenceTokenizer vs pickled params", "status": "done"},
-    {"id": "M3", "title": "Util + API + Regexp/Simple foundations", "status": "in_progress"},
-    {"id": "M4", "title": "Tweet/Casual tokenizer", "status": "not_started"},
-    {"id": "M5", "title": "Toktok + MWE + SExpr", "status": "not_started"},
-    {"id": "M6", "title": "Legality / Sonority / TextTiling (deferrable)", "status": "not_started"},
-    {"id": "M7", "title": "Punkt training (high-risk, may stay Python fallback)", "status": "not_started"}
+    {
+      "id": "M1",
+      "title": "NLTKWordTokenizer + Treebank (destructive.py/treebank.py)",
+      "status": "done"
+    },
+    {
+      "id": "M2",
+      "title": "Punkt inference \u2014 sent_tokenize / PunktSentenceTokenizer vs pickled params",
+      "status": "done"
+    },
+    {
+      "id": "M3",
+      "title": "Util + API + Regexp/Simple foundations",
+      "status": "done"
+    },
+    {
+      "id": "M4",
+      "title": "Tweet/Casual tokenizer",
+      "status": "in_progress"
+    },
+    {
+      "id": "M5",
+      "title": "Toktok + MWE + SExpr",
+      "status": "not_started"
+    },
+    {
+      "id": "M6",
+      "title": "Legality / Sonority / TextTiling (deferrable)",
+      "status": "not_started"
+    },
+    {
+      "id": "M7",
+      "title": "Punkt training (high-risk, may stay Python fallback)",
+      "status": "not_started"
+    }
   ],
-  "last_ci_run": {"id": 31997866110, "branch": "port/nltk-tokenize-2026-08-17", "mode": "full", "status": "success", "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/31997866110"}
+  "last_ci_run": {
+    "id": 31998303098,
+    "branch": "port/nltk-tokenize-2026-08-17",
+    "mode": "full",
+    "status": "success",
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/31998303098"
+  }
 }
