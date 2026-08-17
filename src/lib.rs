@@ -234,7 +234,7 @@ fn texttiling_tokenize_py(py: Python, text: &str, w: usize, k: usize) -> PyResul
 
 #[pyfunction]
 #[pyo3(signature = (text, corpus, vowels="aeiouy".to_string()))]
-fn legality_tokenize_with_corpus_py(py: Python, text: &str, corpus: Vec<String>, vowels: String) -> PyResult<Vec<String>> {
+fn legality_tokenize_with_corpus_py(_py: Python, text: &str, corpus: Vec<String>, vowels: String) -> PyResult<Vec<String>> {
     static CACHE: LazyLock<RwLock<HashMap<String, crate::deferrable::LegalityPrincipleTokenizer>>> =
         LazyLock::new(|| RwLock::new(HashMap::new()));
     let key = format!("{}:{}", vowels, corpus.len());
