@@ -17,16 +17,7 @@ static RE_P7: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[?!]").unwrap());
 static RE_P8: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^'])' ").unwrap());
 static RE_P9: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[*]").unwrap());
 static RE_PARENS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"[\]\[(){}<>]").unwrap());
-static RE_LRB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\(").unwrap());
-static RE_RRB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\)").unwrap());
-static RE_LSB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\[").unwrap());
-static RE_RSB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\]").unwrap());
-static RE_LCB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\{").unwrap());
-static RE_RCB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\}").unwrap());
-static RE_DASH: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"--").unwrap());
 static RE_RQUOTE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([»”’])").unwrap());
-static RE_DQ: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"''").unwrap());
-static RE_Q: LazyLock<Regex> = LazyLock::new(|| Regex::new(r#"""#).unwrap());
 static RE_WS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
 static RE_C1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^' ])('[sS]|'[mM]|'[dD]|') ").unwrap());
 static RE_C2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ").unwrap());
@@ -66,7 +57,7 @@ impl NLTKWordTokenizer {
     pub fn tokenize_core(text: &str, convert_parentheses: bool) -> Vec<String> {
         let mut s = text.to_string();
 
-        s = RE_Q1.replace_all(&s, " $1 ").to_string();
+        if let Cow::Owned(o) = RE_Q1.replace_all(&s, " $1 ") { s = o; }
         if let Cow::Owned(o) = RE_Q2.replace(&s, "``") { s = o; }
         if let Cow::Owned(o) = RE_Q3.replace_all(&s, " $1 ") { s = o; }
         if let Cow::Owned(o) = RE_Q4.replace_all(&s, "$1 `` ") { s = o; }
@@ -88,7 +79,7 @@ impl NLTKWordTokenizer {
                 .to_string();
         }
 
-        s = RE_P1.replace_all(&s, "$1 $2 $3 ").to_string();
+        if let Cow::Owned(o) = RE_P1.replace_all(&s, "$1 $2 $3 ") { s = o; }
         if let Cow::Owned(o) = RE_P2.replace_all(&s, " $1 $2") { s = o; }
         if let Cow::Owned(o) = RE_P3.replace_all(&s, " $1 ") { s = o; }
         if let Cow::Owned(o) = RE_P4.replace_all(&s, " $0 ") { s = o; }
@@ -101,21 +92,21 @@ impl NLTKWordTokenizer {
         if let Cow::Owned(o) = RE_PARENS.replace_all(&s, " $0 ") { s = o; }
 
         if convert_parentheses {
-            if let Cow::Owned(o) = RE_LRB.replace_all(&s, "-LRB-") { s = o; }
-            if let Cow::Owned(o) = RE_RRB.replace_all(&s, "-RRB-") { s = o; }
-            if let Cow::Owned(o) = RE_LSB.replace_all(&s, "-LSB-") { s = o; }
-            if let Cow::Owned(o) = RE_RSB.replace_all(&s, "-RSB-") { s = o; }
-            if let Cow::Owned(o) = RE_LCB.replace_all(&s, "-LCB-") { s = o; }
-            if let Cow::Owned(o) = RE_RCB.replace_all(&s, "-RCB-") { s = o; }
+            if s.contains('(') { s = s.replace('(', "-LRB-"); }
+            if s.contains(')') { s = s.replace(')', "-RRB-"); }
+            if s.contains('[') { s = s.replace('[', "-LSB-"); }
+            if s.contains(']') { s = s.replace(']', "-RSB-"); }
+            if s.contains('{') { s = s.replace('{', "-LCB-"); }
+            if s.contains('}') { s = s.replace('}', "-RCB-"); }
         }
 
-        if let Cow::Owned(o) = RE_DASH.replace_all(&s, " -- ") { s = o; }
+        if s.contains("--") { s = s.replace("--", " -- "); }
 
         s.reserve(2); s.insert(0, ' '); s.push(' ');
 
         if let Cow::Owned(o) = RE_RQUOTE.replace_all(&s, " $1 ") { s = o; }
-        if let Cow::Owned(o) = RE_DQ.replace_all(&s, " '' ") { s = o; }
-        if let Cow::Owned(o) = RE_Q.replace_all(&s, " '' ") { s = o; }
+        if s.contains("''") { s = s.replace("''", " '' "); }
+        if s.contains('"') { s = s.replace('"', " '' "); }
         if let Cow::Owned(o) = RE_WS.replace_all(&s, " ") { s = o; }
         if let Cow::Owned(o) = RE_C1.replace_all(&s, "$1 $2 ") { s = o; }
         if let Cow::Owned(o) = RE_C2.replace_all(&s, "$1 $2 ") { s = o; }

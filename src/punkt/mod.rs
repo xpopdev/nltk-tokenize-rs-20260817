@@ -1,3 +1,4 @@
+use memchr::memchr3;
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
@@ -98,57 +99,50 @@ impl PunktSentenceTokenizer {
         if text.trim().is_empty() {
             return vec![];
         }
-        // Very small inference: walk chars, split on [.!?] + space + capital/realignment
-        // Check abbrev_types to avoid splitting on "Mr." etc.
-        let chars: Vec<char> = text.chars().collect();
+        let bytes = text.as_bytes();
+        let n = bytes.len();
         let mut sentences = Vec::new();
         let mut start = 0usize;
         let mut i = 0usize;
-        while i < chars.len() {
-            let c = chars[i];
+        while i < n {
+            if let Some(rel) = memchr3(b'.', b'!', b'?', &bytes[i..]) {
+                i += rel;
+            } else {
+                break;
+            }
+            let c = bytes[i] as char;
             if matches!(c, '.' | '!' | '?') {
-                // Look ahead: consume trailing closings like " )\"' ] ) etc handled by realign flag
                 let mut end = i + 1;
                 if realign_boundaries {
-                    while end < chars.len() && matches!(chars[end], '"' | '\'' | ')' | ']' | '}') {
+                    while end < n && matches!(bytes[end] as char, '"' | '\'' | ')' | ']' | '}') {
                         end += 1;
                     }
                 }
-                // Is this an abbrev period? Check word before period
-                let word_start = (0..i)
-                    .rev()
-                    .find(|&j| !chars[j].is_alphanumeric())
-                    .map(|j| j + 1)
+                let word_start = text[..i]
+                    .rfind(|c: char| !c.is_alphanumeric())
+                    .map(|idx| {
+                        let c = text[idx..].chars().next().unwrap();
+                        idx + c.len_utf8()
+                    })
                     .unwrap_or(0);
-                let word: String = chars[word_start..i]
-                    .iter()
-                    .collect::<String>()
-                    .to_lowercase();
+                let word = text[word_start..i].to_lowercase();
                 let is_abbrev = self.params.is_abbrev(&word);
-                // Next non-space char should be capital or end for real boundary
                 let mut next = end;
-                while next < chars.len() && chars[next].is_whitespace() {
+                while next < n && (bytes[next] as char).is_whitespace() {
                     next += 1;
                 }
-                let next_is_sent_start = next >= chars.len() || chars[next].is_uppercase();
+                let next_is_sent_start = next >= n || (bytes[next] as char).is_uppercase();
                 let is_boundary = !is_abbrev
                     && (next_is_sent_start
-                        || next >= chars.len()
-                        || chars[i] == '!'
-                        || chars[i] == '?');
+                        || next >= n
+                        || bytes[i] as char == '!'
+                        || bytes[i] as char == '?');
                 if is_boundary {
-                    // Include trailing spaces up to next sentence start? NLTK keeps original whitespace inside sentence
-                    // We cut at end, then next sentence starts at next
-                    let sent: String = chars[start..end]
-                        .iter()
-                        .collect::<String>()
-                        .trim()
-                        .to_string();
+                    let sent = text[start..end].trim().to_string();
                     if !sent.is_empty() {
                         sentences.push(sent);
                     }
-                    // Skip whitespace
-                    while end < chars.len() && chars[end].is_whitespace() {
+                    while end < n && (bytes[end] as char).is_whitespace() {
                         end += 1;
                     }
                     start = end;
@@ -158,8 +152,8 @@ impl PunktSentenceTokenizer {
             }
             i += 1;
         }
-        if start < chars.len() {
-            let tail: String = chars[start..].iter().collect::<String>().trim().to_string();
+        if start < n {
+            let tail = text[start..].trim().to_string();
             if !tail.is_empty() {
                 sentences.push(tail);
             }
