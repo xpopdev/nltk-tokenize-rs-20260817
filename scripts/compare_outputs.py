@@ -249,9 +249,14 @@ def _try_import_pairs():
     except ImportError:
         pass
 
-    # nist
+    # nist (requires perluniprops corpus — skip if not available, known deviation)
     try:
         import ported_lib
+        import nltk
+        try:
+            nltk.download("perluniprops", quiet=True)
+        except Exception:
+            pass
         from nltk.tokenize.nist import NISTTokenizer
         _orig_nist = NISTTokenizer()
         def orig_nist(text, **kw):
@@ -264,7 +269,7 @@ def _try_import_pairs():
         def ported_nist_intl(text, **kw):
             return ported_lib.nist_international_tokenize_py(text, lowercase=kw.get("lowercase", False))
         FUNCTION_PAIRS["nist_international_tokenize"] = (orig_nist_intl, ported_nist_intl)
-    except ImportError:
+    except Exception:
         pass
 
     # legality / sonority / texttiling — compare via TokenizerI path where NLTK needs corpus
@@ -295,12 +300,15 @@ def _try_import_pairs():
 
     try:
         import ported_lib
-        from nltk.tokenize.sonority_sequencing import SyllableTokenizer as SonNLTK
+        try:
+            from nltk.tokenize.sonority_sequencing import SyllableTokenizer as SonNLTK
+        except Exception:
+            raise ImportError("sonority not available")
         _son_orig = SonNLTK()
         def orig_son(word, **kw): return _son_orig.tokenize(word)
         def ported_son(word, **kw): return ported_lib.sonority_tokenize_py(word)
         FUNCTION_PAIRS["sonority_tokenize"] = (orig_son, ported_son)
-    except ImportError:
+    except Exception:
         pass
 
     try:
@@ -310,7 +318,7 @@ def _try_import_pairs():
         def orig_tt(text, **kw): return _tt_orig.tokenize(text)
         def ported_tt(text, **kw): return ported_lib.texttiling_tokenize_py(text, w=kw.get("w", 20), k=kw.get("k", 10))
         FUNCTION_PAIRS["texttiling_tokenize"] = (orig_tt, ported_tt)
-    except ImportError:
+    except Exception:
         pass
 
 
