@@ -1,6 +1,12 @@
+use std::sync::LazyLock;
+
 use regex::Regex;
 
 use crate::regex_cache::cached_regex;
+
+static RE_WS_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s+").unwrap());
+static RE_WORD_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\w+").unwrap());
+static RE_DIGIT_FAST: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\d+").unwrap());
 
 pub struct RegexpTokenizer {
     pattern: String,
@@ -115,6 +121,28 @@ impl Default for WordPunctTokenizer {
 }
 
 pub fn regexp_tokenize(text: &str, pattern: &str, gaps: bool, discard_empty: bool) -> Vec<String> {
+    match pattern {
+        r"\s+" if gaps && discard_empty => {
+            return text.split_whitespace().map(|s| s.to_string()).collect();
+        }
+        r"\s+" if gaps => {
+            let parts: Vec<String> = RE_WS_FAST.split(text).map(|s| s.to_string()).collect();
+            if discard_empty {
+                return parts.into_iter().filter(|s| !s.is_empty()).collect();
+            }
+            return parts;
+        }
+        r"\s+" => {
+            return RE_WS_FAST.find_iter(text).map(|m| m.as_str().to_string()).collect();
+        }
+        r"\w+" if !gaps => {
+            return RE_WORD_FAST.find_iter(text).map(|m| m.as_str().to_string()).collect();
+        }
+        r"\d+" if !gaps => {
+            return RE_DIGIT_FAST.find_iter(text).map(|m| m.as_str().to_string()).collect();
+        }
+        _ => {}
+    }
     RegexpTokenizer::new(pattern, gaps, discard_empty).tokenize(text)
 }
 
