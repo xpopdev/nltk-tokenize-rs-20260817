@@ -19,7 +19,7 @@ import statistics
 import time
 from typing import Callable
 
-from compare_outputs import FUNCTION_PAIRS
+from compare_outputs import FUNCTION_PAIRS, _try_import_pairs
 from gen_matrix_inputs import cases_for
 
 
@@ -44,6 +44,7 @@ def main() -> int:
     parser.add_argument("--reps", type=int, default=50)
     args = parser.parse_args()
 
+    _try_import_pairs()
     if not FUNCTION_PAIRS:
         print("No FUNCTION_PAIRS registered yet — nothing to benchmark.")
         return 1

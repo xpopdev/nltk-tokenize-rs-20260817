@@ -77,6 +77,13 @@ jobs:
           source .venv/bin/activate
           pytest matrix_tests/test_property_based.py -v --tb=short || true
 
+      - name: Run benchmark (original vs ported)
+        run: |
+          source .venv/bin/activate
+          python scripts/benchmark.py --reps 200
+          cat benchmark_report.md
+          cat benchmark_report.json
+
       - name: Upload matrix report
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,6 +92,8 @@ jobs:
           path: |
             matrix_report.md
             matrix_report.json
+            benchmark_report.md
+            benchmark_report.json
 
       - name: Upload built wheels
         if: github.event.inputs.mode == 'full'
