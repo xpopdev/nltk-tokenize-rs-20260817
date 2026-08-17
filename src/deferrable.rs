@@ -6,13 +6,22 @@ use crate::api::TokenizerI;
 #[derive(Clone)]
 pub struct LegalityPrincipleTokenizer {
     vowels: String,
+    vowel_arr: [bool; 256],
     legal_onsets: HashSet<String>,
 }
 
 impl LegalityPrincipleTokenizer {
     pub fn new(source_words: Vec<String>, vowels: &str) -> Self {
+        let mut vowel_arr = [false; 256];
+        for c in vowels.chars() {
+            let lo = c.to_ascii_lowercase() as usize;
+            if lo < 256 { vowel_arr[lo] = true; }
+            let up = c.to_ascii_uppercase() as usize;
+            if up < 256 { vowel_arr[up] = true; }
+        }
         let mut tok = Self {
             vowels: vowels.to_string(),
+            vowel_arr,
             legal_onsets: HashSet::new(),
         };
         tok.legal_onsets = tok.find_legal_onsets(&source_words);
@@ -37,7 +46,9 @@ impl LegalityPrincipleTokenizer {
     fn onset(&self, word: &str) -> String {
         let mut onset = String::new();
         for c in word.chars() {
-            if self.vowels.contains(c) || self.vowels.contains(c.to_ascii_lowercase()) {
+            let idx = c as usize;
+            let is_vowel = if idx < 256 { self.vowel_arr[idx] } else { self.vowels.contains(c.to_ascii_lowercase()) };
+            if is_vowel {
                 break;
             }
             onset.push(c);
@@ -55,7 +66,10 @@ impl LegalityPrincipleTokenizer {
         // Mirror NLTK's LegalitySyllableTokenizer.tokenize: iterate reversed,
         // building syllables backwards then reverse at the end.
         let chars: Vec<char> = word.chars().collect();
-        let is_vowel = |c: char| self.vowels.contains(c.to_ascii_lowercase());
+        let is_vowel = |c: char| {
+            let idx = c as usize;
+            if idx < 256 { self.vowel_arr[idx] } else { self.vowels.contains(c.to_ascii_lowercase()) }
+        };
         let mut syllables: Vec<String> = Vec::new();
         let mut syllable = String::new();
         let mut current_onset = String::new();
