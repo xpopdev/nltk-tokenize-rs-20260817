@@ -123,7 +123,7 @@ impl NLTKWordTokenizer {
         s = apply(&s, r"[*]", r" $0 ");
 
         // PARENS
-        s = apply(&s, r"[\]\[\(\)\{\}\<\>]", r" $0 ");
+        s = apply(&s, r"[\]\[(){}<>]", r" $0 ");
 
         if convert_parentheses {
             s = apply(&s, r"\(", "-LRB-");
