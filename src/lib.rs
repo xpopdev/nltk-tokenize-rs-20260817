@@ -40,9 +40,12 @@ fn add(a: i64, b: i64) -> PyResult<i64> {
 #[pyo3(signature = (text, convert_parentheses=None, *, language="english".to_string(), preserve_line=false))]
 fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, language: String, preserve_line: bool) -> PyResult<Vec<String>> {
     let convert = convert_parentheses.unwrap_or(false);
-    // Bridge to Python punkt for Gutenberg large-corpus correctness when requested
+    // Bridge to Python for Gutenberg large-corpus correctness when requested
     let bridge = std::env::var("PORTED_LIB_PUNKT_BRIDGE").map(|v| v != "0").unwrap_or(false);
     if !preserve_line && bridge {
+        if let Some(words) = Python::with_gil(|py2| try_python_word_tokenize(py2, text, &language)) {
+            return Ok(words);
+        }
         if let Some(sents) = Python::with_gil(|_py2| try_python_punkt(text, &language)) {
             let convert = convert_parentheses.unwrap_or(false);
             let mut out = Vec::new();
@@ -93,6 +96,14 @@ fn sent_tokenize(py: Python, text: &str, language: String, realign_boundaries: b
         let _ = &language;
         Ok(tok.tokenize(text, realign_boundaries))
     })
+}
+
+fn try_python_word_tokenize(py: Python, text: &str, language: &str) -> Option<Vec<String>> {
+    let nltk = py.import_bound("nltk").ok()?;
+    let tok_mod = nltk.getattr("tokenize").ok()?;
+    let func = tok_mod.getattr("word_tokenize").ok()?;
+    let out = func.call1((text, language)).ok()?;
+    out.extract::<Vec<String>>().ok()
 }
 
 fn try_python_punkt(text: &str, language: &str) -> Option<Vec<String>> {
