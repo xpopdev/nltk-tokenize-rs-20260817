@@ -1,3 +1,4 @@
+#![allow(clippy::useless_conversion)]
 use pyo3::prelude::*;
 
 pub mod destructive;
