@@ -4,7 +4,6 @@ use regex::Regex;
 
 use crate::api::TokenizerI;
 
-static RE_PIPE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\|").unwrap());
 static RE_BRACKETS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([\[\](){}<>])").unwrap());
 static RE_URL_PUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([:/?#])").unwrap());
 static RE_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s*([,])\s*").unwrap());
@@ -69,8 +68,8 @@ impl TokenizerI for ToktokTokenizer {
 }
 
 fn tokenize_inner(text: &str) -> String {
-    let mut s = RE_PIPE.replace_all(text, " &#124; ").to_string();
-    if s.contains('	') { s = s.replace('	', " "); }
+    let mut s = if text.contains('|') { text.replace('|', " &#124; ") } else { text.to_string() };
+    if s.contains('\t') { s = s.replace('\t', " "); }
     if let Cow::Owned(o) = RE_BRACKETS.replace_all(&s, " $1 ") { s = o; }
     if let Cow::Owned(o) = RE_URL_PUNCT.replace_all(&s, " $1 ") { s = o; }
     s = apply_with_lookahead_colon(&s);
