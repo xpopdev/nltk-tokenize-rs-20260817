@@ -17,9 +17,9 @@ where
     F: Fn(T) -> U + Send + Sync,
 {
     if items.len() < 64 {
-        return items.into_iter().map(|x| f(x)).collect();
+        return items.into_iter().map(f).collect();
     }
-    items.into_par_iter().map(|x| f(x)).collect()
+    items.into_par_iter().map(f).collect()
 }
 
 pub fn par_map_ref<T, U, F>(items: &[T], f: F) -> Vec<U>
@@ -29,7 +29,7 @@ where
     F: Fn(&T) -> U + Send + Sync,
 {
     if items.len() < 64 {
-        return items.iter().map(|x| f(x)).collect();
+        return items.iter().map(&f).collect();
     }
-    items.par_iter().map(|x| f(x)).collect()
+    items.par_iter().map(&f).collect()
 }
