@@ -17,27 +17,26 @@ static RE_FINAL_DOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.$").unwra
 static RE_WS2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" {2,}").unwrap());
 
 fn apply_with_lookahead_colon(text: &str) -> String {
-    let mut out = String::new();
-    let chars: Vec<char> = text.chars().collect();
+    if !text.is_ascii() {
+        let mut out = String::with_capacity(text.len()+8);
+        for (idx,c) in text.char_indices() {
+            if c == ':' {
+                let rest = &text[idx+c.len_utf8()..];
+                if rest.starts_with("//") { out.push(':'); } else { out.push_str(" : "); }
+            } else { out.push(c); }
+        }
+        return out;
+    }
+    let bytes = text.as_bytes();
+    let mut out = String::with_capacity(text.len() + 8);
+    let n = bytes.len();
     let mut i = 0;
-    while i < chars.len() {
-        if chars[i] == ':'
-            && (i + 1 >= chars.len()
-                || chars[i + 1] != '/'
-                || (i + 2 < chars.len() && chars[i + 2] != '/')
-                || i + 2 >= chars.len())
-        {
-            if i + 1 < chars.len()
-                && chars[i + 1] == '/'
-                && i + 2 < chars.len()
-                && chars[i + 2] == '/'
-            {
-                out.push(':');
-            } else {
-                out.push_str(" : ");
-            }
+    while i < n {
+        if bytes[i] == b':' {
+            let is_url = i+2 < n && bytes[i+1] == b'/' && bytes[i+2] == b'/';
+            if is_url { out.push(':'); } else { out.push_str(" : "); }
         } else {
-            out.push(chars[i]);
+            out.push(bytes[i] as char);
         }
         i += 1;
     }
