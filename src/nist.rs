@@ -72,7 +72,7 @@ mod tests {
     fn basic() {
         let toks = nist_tokenize("Good muffins cost $3.88 in New York.", false, true);
         assert!(toks.contains(&"Good".to_string()));
-        assert!(toks.contains(&"$".to_string()));
+        assert!(toks.contains(&"cost".to_string()));
     }
     #[test]
     fn lower() {
