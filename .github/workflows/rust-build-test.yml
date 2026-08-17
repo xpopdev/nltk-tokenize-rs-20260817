@@ -46,6 +46,9 @@ jobs:
 
       - name: Build extension
         run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -U pip
           if [ "${{ github.event.inputs.mode }}" = "full" ]; then
             maturin build --release
             maturin develop --release
