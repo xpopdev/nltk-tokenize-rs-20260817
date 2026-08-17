@@ -1,11 +1,21 @@
-use crate::api::TokenizerI;
-use crate::regex_cache::cached_regex;
+use std::sync::LazyLock;
+use regex::Regex;
 
-fn apply(text: &str, pattern: &str, replacement: &str) -> String {
-    let rust_repl = replacement.replace("\\1", "$1").replace("\\2", "$2");
-    let re = cached_regex(pattern);
-    re.replace_all(text, rust_repl.as_str()).to_string()
-}
+use crate::api::TokenizerI;
+
+static RE_PIPE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\|").unwrap());
+static RE_TAB: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\t").unwrap());
+static RE_BRACKETS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([\[\](){}<>])").unwrap());
+static RE_URL_PUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([:/?#])").unwrap());
+static RE_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s*([,])\s*").unwrap());
+static RE_QUOTE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(['\u{2019}`])").unwrap());
+static RE_CC1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" ` ` ").unwrap());
+static RE_CC2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" ' ' ").unwrap());
+static RE_COMMA2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(,{2,})").unwrap());
+static RE_DASH2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(-{2,})").unwrap());
+static RE_DOTS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\.{2,})").unwrap());
+static RE_FINAL_DOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.$").unwrap());
+static RE_WS2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" {2,}").unwrap());
 
 fn apply_with_lookahead_colon(text: &str) -> String {
     let mut out = String::new();
@@ -38,34 +48,19 @@ fn apply_with_lookahead_colon(text: &str) -> String {
 pub struct ToktokTokenizer;
 
 impl ToktokTokenizer {
-    pub fn new() -> Self {
-        Self
-    }
+    pub fn new() -> Self { Self }
     pub fn tokenize_with_flag(&self, text: &str, return_str: bool) -> Vec<String> {
         let s = tokenize_inner(text);
-        if return_str {
-            vec![s]
-        } else {
-            s.split_whitespace().map(|x| x.to_string()).collect()
-        }
+        if return_str { vec![s] } else { s.split_whitespace().map(|x| x.to_string()).collect() }
     }
-    pub fn tokenize_str(&self, text: &str) -> String {
-        tokenize_inner(text)
-    }
+    pub fn tokenize_str(&self, text: &str) -> String { tokenize_inner(text) }
 }
 
-impl Default for ToktokTokenizer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+impl Default for ToktokTokenizer { fn default() -> Self { Self::new() } }
 
 impl TokenizerI for ToktokTokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
-        tokenize_inner(s)
-            .split_whitespace()
-            .map(|x| x.to_string())
-            .collect()
+        tokenize_inner(s).split_whitespace().map(|x| x.to_string()).collect()
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
         let toks = TokenizerI::tokenize(self, s);
@@ -74,23 +69,22 @@ impl TokenizerI for ToktokTokenizer {
 }
 
 fn tokenize_inner(text: &str) -> String {
-    let mut s = text.to_string();
-    s = apply(&s, r"\|", " &#124; ");
-    s = apply(&s, r"\t", " ");
-    s = apply(&s, r"([\[\](){}<>])", " $1 ");
-    s = apply(&s, r"([:/?#])", " $1 ");
+    let mut s = RE_PIPE.replace_all(text, " &#124; ").to_string();
+    s = RE_TAB.replace_all(&s, " ").to_string();
+    s = RE_BRACKETS.replace_all(&s, " $1 ").to_string();
+    s = RE_URL_PUNCT.replace_all(&s, " $1 ").to_string();
     s = apply_with_lookahead_colon(&s);
-    s = apply(&s, r"\s*([,])\s*", " $1 ");
-    s = apply(&s, r"(['’`])", " $1 ");
-    s = apply(&s, r" ` ` ", " `` ");
-    s = apply(&s, r" ' ' ", " '' ");
-    s = apply(&s, r"(,{2,})", " $1 ");
-    s = apply(&s, r"(-{2,})", " $1 ");
-    s = apply(&s, r"(\.{2,})", " $1 ");
+    s = RE_COMMA.replace_all(&s, " $1 ").to_string();
+    s = RE_QUOTE.replace_all(&s, " $1 ").to_string();
+    s = RE_CC1.replace_all(&s, " `` ").to_string();
+    s = RE_CC2.replace_all(&s, " '' ").to_string();
+    s = RE_COMMA2.replace_all(&s, " $1 ").to_string();
+    s = RE_DASH2.replace_all(&s, " $1 ").to_string();
+    s = RE_DOTS.replace_all(&s, " $1 ").to_string();
     if s.ends_with('.') && !s.ends_with("..") {
-        s = cached_regex(r"\.$").replace(&s, " .").to_string();
+        s = RE_FINAL_DOT.replace(&s, " .").to_string();
     }
-    s = apply(&s, r" {2,}", " ");
+    s = RE_WS2.replace_all(&s, " ").to_string();
     s.trim().to_string()
 }
 
