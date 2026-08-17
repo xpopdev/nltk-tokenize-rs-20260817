@@ -5,21 +5,23 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
         panic!("Token delimiter must not be empty");
     }
     let mut out = Vec::new();
-    let mut left_byte = 0;
-    let s_len_chars = s.chars().count();
+    let mut byte_to_char = vec![0usize; s.len() + 1];
+    let mut ci = 0;
+    for (bi, _) in s.char_indices() { byte_to_char[bi] = ci; ci += 1; }
+    byte_to_char[s.len()] = ci;
+    let s_len_chars = ci;
+    let mut left_byte = 0usize;
     loop {
-        let left_char = s[..left_byte].chars().count();
+        let left_char = byte_to_char[left_byte];
         match s[left_byte..].find(sep) {
             Some(rel) => {
                 let right_byte = left_byte + rel;
-                let right_char = s[..right_byte].chars().count();
+                let right_char = byte_to_char[right_byte];
                 if right_char != 0 {
                     out.push((left_char, right_char));
                 }
                 left_byte = right_byte + sep.len();
-                if left_byte > s.len() {
-                    break;
-                }
+                if left_byte > s.len() { break; }
             }
             None => {
                 if left_char != s_len_chars {
@@ -28,29 +30,28 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
                 break;
             }
         }
-        if left_byte >= s.len() {
-            break;
-        }
+        if left_byte >= s.len() { break; }
     }
     out
 }
 
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     let re = cached_regex(pattern);
+    let mut byte_to_char = vec![0usize; s.len() + 1];
+    let mut ci = 0;
+    for (bi, _) in s.char_indices() { byte_to_char[bi] = ci; ci += 1; }
+    byte_to_char[s.len()] = ci;
     let mut out = Vec::new();
     let mut left_byte = 0usize;
     for m in re.find_iter(s) {
         let (right_byte, next_byte) = (m.start(), m.end());
         if right_byte != left_byte {
-            let char_left = s[..left_byte].chars().count();
-            let char_right = char_left + s[left_byte..right_byte].chars().count();
-            out.push((char_left, char_right));
+            out.push((byte_to_char[left_byte], byte_to_char[right_byte]));
         }
         left_byte = next_byte;
     }
-    let char_left = s[..left_byte].chars().count();
-    let char_right = char_left + s[left_byte..].chars().count();
-    out.push((char_left, char_right));
+    out.push((byte_to_char[left_byte], byte_to_char[s.len()]));
+    out.retain(|(a,b)| !(a==b && out.len()>1));
     out
 }
 
@@ -84,27 +85,44 @@ pub fn is_cjk(c: char) -> bool {
 }
 
 pub fn xml_escape(text: &str) -> String {
-    let mut s = text.replace('&', "&amp;");
-    s = s.replace('<', "&lt;");
-    s = s.replace('>', "&gt;");
-    s = s.replace('\'', "&apos;");
-    s = s.replace('"', "&quot;");
-    s = s.replace('|', "&#124;");
-    s = s.replace('[', "&#91;");
-    s = s.replace(']', "&#93;");
-    s
+    let mut out = String::with_capacity(text.len() + 16);
+    for c in text.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '\'' => out.push_str("&apos;"),
+            '"' => out.push_str("&quot;"),
+            '|' => out.push_str("&#124;"),
+            '[' => out.push_str("&#91;"),
+            ']' => out.push_str("&#93;"),
+            _ => out.push(c),
+        }
+    }
+    out
 }
 
 pub fn xml_unescape(text: &str) -> String {
-    let mut s = text.replace("&apos;", "'");
-    s = s.replace("&quot;", "\"");
-    s = s.replace("&#124;", "|");
-    s = s.replace("&#91;", "[");
-    s = s.replace("&#93;", "]");
-    s = s.replace("&lt;", "<");
-    s = s.replace("&gt;", ">");
-    s = s.replace("&amp;", "&");
-    s
+    let mut out = String::with_capacity(text.len());
+    let bytes = text.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'&' {
+            let rest = &text[i..];
+            if rest.starts_with("&amp;") { out.push('&'); i += 5; continue; }
+            if rest.starts_with("&lt;") { out.push('<'); i += 4; continue; }
+            if rest.starts_with("&gt;") { out.push('>'); i += 4; continue; }
+            if rest.starts_with("&apos;") { out.push('\''); i += 6; continue; }
+            if rest.starts_with("&quot;") { out.push('"'); i += 6; continue; }
+            if rest.starts_with("&#124;") { out.push('|'); i += 6; continue; }
+            if rest.starts_with("&#91;") { out.push('['); i += 5; continue; }
+            if rest.starts_with("&#93;") { out.push(']'); i += 5; continue; }
+        }
+        let c = text[i..].chars().next().unwrap();
+        out.push(c);
+        i += c.len_utf8();
+    }
+    out
 }
 
 pub fn align_tokens(tokens: &[String], sentence: &str) -> Vec<(usize, usize)> {

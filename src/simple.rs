@@ -4,7 +4,9 @@ use crate::util::{regexp_span_tokenize, string_span_tokenize};
 pub struct SpaceTokenizer;
 impl TokenizerI for SpaceTokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
-        s.split(' ').map(|x| x.to_string()).collect()
+        let mut out = Vec::with_capacity(s.len().saturating_add(1) / 4);
+        for tok in s.split(' ') { out.push(tok.to_string()); }
+        out
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
         string_span_tokenize(s, " ")
@@ -24,7 +26,9 @@ impl TokenizerI for TabTokenizer {
 pub struct CharTokenizer;
 impl TokenizerI for CharTokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
-        s.chars().map(|c| c.to_string()).collect()
+        let mut out = Vec::with_capacity(s.chars().count());
+        for c in s.chars() { out.push(c.to_string()); }
+        out
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
         let mut out = Vec::new();
