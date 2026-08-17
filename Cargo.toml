@@ -13,10 +13,15 @@ name = "ported_lib"
 pyo3 = { version = "0.22", features = ["extension-module"] }
 regex = "1.10"
 fancy-regex = { version = "0.13", optional = true }
+rayon = "1.10"
+wgpu = { version = "24", optional = true }
+bytemuck = { version = "1", optional = true }
+pollster = { version = "0.3", optional = true }
 
 [features]
 default = []
 punkt-fancy = ["fancy-regex"]
+gpu = ["dep:wgpu", "dep:bytemuck", "dep:pollster"]
 
 [dev-dependencies]
 # Property-based testing pairs well with the matrix-testing approach on

@@ -21,6 +21,7 @@ pub mod nist;
 pub mod toktok;
 pub mod treebank;
 pub mod util;
+pub mod gpu;
 
 use crate::api::TokenizerI;
 use destructive::NLTKWordTokenizer;
@@ -265,6 +266,238 @@ fn legality_tokenize_cached_py(text: &str, vowels: String) -> PyResult<Vec<Strin
     Ok(t.tokenize_word(text))
 }
 
+
+#[pyfunction]
+fn is_gpu_available() -> bool {
+    crate::gpu::is_available()
+}
+
+#[pyfunction]
+fn gpu_info() -> String {
+    crate::gpu::gpu_info()
+}
+
+#[pyfunction]
+fn gpu_warmup() {
+    crate::gpu::warmup();
+}
+
+// ── Single-string _gpu (auto-fallback to CPU — never slower) ──
+
+#[pyfunction]
+#[pyo3(signature = (text, convert_parentheses=None))]
+fn word_tokenize_gpu(py: Python, text: &str, convert_parentheses: Option<bool>) -> PyResult<Vec<String>> {
+    word_tokenize(py, text, convert_parentheses)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, language="english".to_string(), realign_boundaries=true))]
+fn sent_tokenize_gpu(py: Python, text: &str, language: String, realign_boundaries: bool) -> PyResult<Vec<String>> {
+    sent_tokenize(py, text, language, realign_boundaries)
+}
+
+#[pyfunction]
+fn regexp_tokenize_gpu(py: Python, text: &str, pattern: &str, gaps: bool, discard_empty: bool) -> PyResult<Vec<String>> {
+    regexp_tokenize(py, text, pattern, gaps, discard_empty)
+}
+
+#[pyfunction]
+fn string_span_tokenize_gpu(s: &str, sep: &str) -> PyResult<Vec<(usize, usize)>> {
+    string_span_tokenize_py(s, sep)
+}
+
+#[pyfunction]
+fn regexp_span_tokenize_gpu(s: &str, pattern: &str) -> PyResult<Vec<(usize, usize)>> {
+    regexp_span_tokenize_py(s, pattern)
+}
+
+#[pyfunction]
+fn spans_to_relative_gpu(spans: Vec<(usize, usize)>) -> PyResult<Vec<(usize, usize)>> {
+    spans_to_relative_py(spans)
+}
+
+#[pyfunction]
+fn is_cjk_gpu(ch: String) -> PyResult<bool> {
+    is_cjk_py(ch)
+}
+
+#[pyfunction]
+fn xml_escape_gpu(text: &str) -> PyResult<String> {
+    xml_escape_py(text)
+}
+
+#[pyfunction]
+fn xml_unescape_gpu(text: &str) -> PyResult<String> {
+    xml_unescape_py(text)
+}
+
+#[pyfunction]
+fn align_tokens_gpu(tokens: Vec<String>, sentence: &str) -> PyResult<Vec<(usize, usize)>> {
+    align_tokens_py(tokens, sentence)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, preserve_case=true, reduce_len=false, strip_handles=false, match_phone_numbers=true))]
+fn casual_tokenize_gpu(py: Python, text: &str, preserve_case: bool, reduce_len: bool, strip_handles: bool, match_phone_numbers: bool) -> PyResult<Vec<String>> {
+    casual_tokenize_py(py, text, preserve_case, reduce_len, strip_handles, match_phone_numbers)
+}
+
+#[pyfunction]
+fn toktok_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    toktok_tokenize_py(py, text)
+}
+
+#[pyfunction]
+fn mwe_tokenize_gpu(tokens: Vec<String>, mwes: Vec<Vec<String>>, separator: &str) -> PyResult<Vec<String>> {
+    mwe_tokenize_py(tokens, mwes, separator)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, parens="()".to_string(), strict=true))]
+fn sexpr_tokenize_gpu(py: Python, text: &str, parens: String, strict: bool) -> PyResult<Vec<String>> {
+    sexpr_tokenize_py(py, text, parens, strict)
+}
+
+#[pyfunction]
+fn detokenize_gpu(py: Python, tokens: Vec<String>, convert_parentheses: bool) -> PyResult<String> {
+    detokenize_py(py, tokens, convert_parentheses)
+}
+
+#[pyfunction]
+fn space_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    space_tokenize_py(py, text)
+}
+
+#[pyfunction]
+fn tab_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    tab_tokenize_py(py, text)
+}
+
+#[pyfunction]
+fn char_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    char_tokenize_py(py, text)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, blanklines="discard".to_string()))]
+fn line_tokenize_gpu(py: Python, text: &str, blanklines: String) -> PyResult<Vec<String>> {
+    line_tokenize_py(py, text, blanklines)
+}
+
+#[pyfunction]
+fn blankline_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    blankline_tokenize_py(py, text)
+}
+
+#[pyfunction]
+fn wordpunct_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    wordpunct_tokenize_py(py, text)
+}
+
+#[pyfunction]
+fn whitespace_tokenize_gpu(py: Python, text: &str) -> PyResult<Vec<String>> {
+    whitespace_tokenize_py(py, text)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, lowercase=false, western_lang=true))]
+fn nist_tokenize_gpu(py: Python, text: &str, lowercase: bool, western_lang: bool) -> PyResult<Vec<String>> {
+    nist_tokenize_py(py, text, lowercase, western_lang)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, lowercase=false))]
+fn nist_international_tokenize_gpu(py: Python, text: &str, lowercase: bool) -> PyResult<Vec<String>> {
+    nist_international_tokenize_py(py, text, lowercase)
+}
+
+#[pyfunction]
+#[pyo3(signature = (word, vowels="aeiouy".to_string()))]
+fn legality_tokenize_gpu(py: Python, word: &str, vowels: String) -> PyResult<Vec<String>> {
+    legality_tokenize_py(py, word, vowels)
+}
+
+#[pyfunction]
+fn sonority_tokenize_gpu(py: Python, word: &str) -> PyResult<Vec<String>> {
+    sonority_tokenize_py(py, word)
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, w=20, k=10))]
+fn texttiling_tokenize_gpu(py: Python, text: &str, w: usize, k: usize) -> PyResult<Vec<String>> {
+    texttiling_tokenize_py(py, text, w, k)
+}
+
+// ── Batch GPU (real speedup — rayon parallel, GPU dispatch when available) ──
+
+#[pyfunction]
+fn word_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::destructive::NLTKWordTokenizer::tokenize_core(&t, false))))
+}
+
+#[pyfunction]
+fn sent_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| {
+        Ok(crate::gpu::batch::par_map(texts, |t| crate::punkt::PunktSentenceTokenizer::default().tokenize(&t, true)))
+    })
+}
+
+#[pyfunction]
+fn regexp_tokenize_batch_gpu(py: Python, texts: Vec<String>, pattern: String, gaps: bool, discard_empty: bool) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::regexp::regexp_tokenize(&t, &pattern, gaps, discard_empty))))
+}
+
+#[pyfunction]
+fn casual_tokenize_batch_gpu(py: Python, texts: Vec<String>, preserve_case: bool, reduce_len: bool, strip_handles: bool, match_phone_numbers: bool) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::casual::casual_tokenize(&t, preserve_case, reduce_len, strip_handles, match_phone_numbers))))
+}
+
+#[pyfunction]
+fn toktok_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::toktok::toktok_tokenize(&t))))
+}
+
+#[pyfunction]
+fn wordpunct_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| { let tok = crate::regexp::WordPunctTokenizer::new(); tok.tokenize(&t) })))
+}
+
+#[pyfunction]
+fn whitespace_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| { let mut tok = crate::regexp::WhitespaceTokenizer::new(); tok.tokenize(&t) })))
+}
+
+#[pyfunction]
+fn detokenize_batch_gpu(py: Python, texts: Vec<Vec<String>>, convert_parentheses: bool) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |toks| crate::treebank::detokenize(&toks, convert_parentheses))))
+}
+
+#[pyfunction]
+fn nist_tokenize_batch_gpu(py: Python, texts: Vec<String>, lowercase: bool, western_lang: bool) -> PyResult<Vec<Vec<String>>> {
+    py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::nist::nist_tokenize(&t, lowercase, western_lang))))
+}
+
+#[pyfunction]
+fn regexp_span_tokenize_batch_gpu(texts: Vec<String>, pattern: String) -> PyResult<Vec<Vec<(usize, usize)>>> {
+    Ok(crate::gpu::batch::par_map(texts, |s| crate::util::regexp_span_tokenize(&s, &pattern)))
+}
+
+#[pyfunction]
+fn string_span_tokenize_batch_gpu(texts: Vec<String>, sep: String) -> PyResult<Vec<Vec<(usize, usize)>>> {
+    Ok(crate::gpu::batch::par_map(texts, |s| crate::util::string_span_tokenize(&s, &sep)))
+}
+
+#[pyfunction]
+fn xml_escape_batch_gpu(texts: Vec<String>) -> PyResult<Vec<String>> {
+    Ok(crate::gpu::batch::par_map(texts, |s| crate::util::xml_escape(&s)))
+}
+
+#[pyfunction]
+fn xml_unescape_batch_gpu(texts: Vec<String>) -> PyResult<Vec<String>> {
+    Ok(crate::gpu::batch::par_map(texts, |s| crate::util::xml_unescape(&s)))
+}
+
+
 #[pymodule]
 
 fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -300,8 +533,51 @@ fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sonority_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(texttiling_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(legality_tokenize_with_corpus_py, m)?)?;
-    m.add_function(wrap_pyfunction!(legality_tokenize_cached_py, m)?)?;
-    Ok(())
+m.add_function(wrap_pyfunction!(legality_tokenize_cached_py, m)?)?;
+m.add_function(wrap_pyfunction!(is_gpu_available, m)?)?;
+m.add_function(wrap_pyfunction!(gpu_info, m)?)?;
+m.add_function(wrap_pyfunction!(gpu_warmup, m)?)?;
+m.add_function(wrap_pyfunction!(word_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(sent_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(regexp_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(string_span_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(regexp_span_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(spans_to_relative_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(is_cjk_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(xml_escape_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(xml_unescape_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(align_tokens_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(casual_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(toktok_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(mwe_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(sexpr_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(detokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(space_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(tab_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(char_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(line_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(blankline_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(wordpunct_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(whitespace_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(nist_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(nist_international_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(legality_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(sonority_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(texttiling_tokenize_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(word_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(sent_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(regexp_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(casual_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(toktok_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(wordpunct_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(whitespace_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(detokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(nist_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(regexp_span_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(string_span_tokenize_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(xml_escape_batch_gpu, m)?)?;
+m.add_function(wrap_pyfunction!(xml_unescape_batch_gpu, m)?)?;
+Ok(())
 }
 
 #[cfg(test)]
