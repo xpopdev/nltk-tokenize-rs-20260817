@@ -296,19 +296,11 @@ def _mwe_cases(size: str) -> Iterator[Case]:
 
 @register("sexpr_tokenize")
 def _sexpr_cases(size: str) -> Iterator[Case]:
-    cases = [
-        ("basic", ("(a b (c d)) e f (g)",)),
-        ("empty", ("",)),
-        ("single", ("(a b)",)),
-        ("nested", ("((a b) (c d))",)),
-        ("custom_parens", ("{a b} c",), {"parens": "{}", "strict": True}),
-    ]
-    for label, args in cases:
-        if isinstance(args, tuple) and len(args) == 2 and isinstance(args[1], dict):
-            text, kwargs = args
-            yield Case(label=label, args=(text,), kwargs=kwargs)
-        else:
-            yield Case(label=label, args=args)
+    yield Case(label="basic", args=("(a b (c d)) e f (g)",))
+    yield Case(label="empty", args=("",))
+    yield Case(label="single", args=("(a b)",))
+    yield Case(label="nested", args=("((a b) (c d))",))
+    yield Case(label="custom_parens", args=("{a b} c",), kwargs={"parens": "{}", "strict": True})
 
 
 # Keep example for backward compat — filter to i64-range to avoid Rust wrapping vs Python bigint divergence
