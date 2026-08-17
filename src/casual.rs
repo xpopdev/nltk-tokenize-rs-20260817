@@ -3,7 +3,6 @@ use std::sync::LazyLock;
 use regex::Regex;
 
 use crate::api::TokenizerI;
-use crate::regex_cache::cached_regex;
 
 static NUMERIC_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"&#(x?)([0-9a-fA-F]+);").unwrap());
