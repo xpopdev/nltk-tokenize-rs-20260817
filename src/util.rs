@@ -5,27 +5,30 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
         panic!("Token delimiter must not be empty");
     }
     let mut out = Vec::new();
-    let mut left = 0;
+    let mut left_byte = 0;
+    let s_len_chars = s.chars().count();
     loop {
-        match s[left..].find(sep) {
+        let left_char = s[..left_byte].chars().count();
+        match s[left_byte..].find(sep) {
             Some(rel) => {
-                let right = left + rel;
-                if right != left {
-                    out.push((left, right));
+                let right_byte = left_byte + rel;
+                let right_char = s[..right_byte].chars().count();
+                if right_char != 0 {
+                    out.push((left_char, right_char));
                 }
-                left = right + sep.len();
-                if left > s.len() {
+                left_byte = right_byte + sep.len();
+                if left_byte > s.len() {
                     break;
                 }
             }
             None => {
-                if left != s.len() {
-                    out.push((left, s.len()));
+                if left_char != s_len_chars {
+                    out.push((left_char, s_len_chars));
                 }
                 break;
             }
         }
-        if left >= s.len() {
+        if left_byte >= s.len() {
             break;
         }
     }
@@ -35,15 +38,19 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     let re = Regex::new(pattern).unwrap();
     let mut out = Vec::new();
-    let mut left = 0usize;
+    let mut left_byte = 0usize;
     for m in re.find_iter(s) {
-        let (right, next) = (m.start(), m.end());
-        if right != left {
-            out.push((left, right));
+        let (right_byte, next_byte) = (m.start(), m.end());
+        if right_byte != left_byte {
+            let char_left = s[..left_byte].chars().count();
+            let char_right = char_left + s[left_byte..right_byte].chars().count();
+            out.push((char_left, char_right));
         }
-        left = next;
+        left_byte = next_byte;
     }
-    out.push((left, s.len()));
+    let char_left = s[..left_byte].chars().count();
+    let char_right = char_left + s[left_byte..].chars().count();
+    out.push((char_left, char_right));
     out
 }
 
