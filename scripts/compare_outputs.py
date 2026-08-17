@@ -151,9 +151,14 @@ def _try_import_pairs():
     # casual / TweetTokenizer
     try:
         import ported_lib
-        from nltk.tokenize.casual import casual_tokenize as ct_orig
-        # casual_tokenize exists since older nltk; fallback to TweetTokenizer
-        def orig_ct(text, **kw): return ct_orig(text)
+        from nltk.tokenize.casual import TweetTokenizer
+        def orig_ct(text, **kw):
+            tok = TweetTokenizer(
+                preserve_case=kw.get("preserve_case", True),
+                reduce_len=kw.get("reduce_len", False),
+                strip_handles=kw.get("strip_handles", False),
+            )
+            return tok.tokenize(text)
         def ported_ct(text, **kw): return ported_lib.casual_tokenize_py(text, preserve_case=kw.get("preserve_case", True), reduce_len=kw.get("reduce_len", False), strip_handles=kw.get("strip_handles", False), match_phone_numbers=kw.get("match_phone_numbers", True))
         FUNCTION_PAIRS["casual_tokenize"] = (orig_ct, ported_ct)
     except ImportError:

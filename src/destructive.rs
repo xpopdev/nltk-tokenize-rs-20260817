@@ -113,15 +113,13 @@ impl NLTKWordTokenizer {
                 .to_string();
         }
 
-        // PUNCTUATION — simplified for M1; full unicode quote handling deferred to later milestone
-        s = apply(&s, r"([^\.])(.)([\]\[\)}]*)\s*$", r"$1 $2 $3 ");
-        // Actually pattern above is complex; fallback: keep Python's exact patterns via simpler translations
-        // For M1 we use the five core punctuation patterns that cover most cases
+        // PUNCTUATION — mirrors nltk.tokenize.destructive.PUNCTUATION
+        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"'»”’]*)\s*$"#, r"$1 $2 $3 ");
         s = apply(&s, r"([:,])([^\d])", r" $1 $2");
         s = apply(&s, r"([:,])$", r" $1 ");
         s = apply(&s, r"\.{2,}", r" $0 ");
         s = apply(&s, r"[;@#$%&]", r" $0 ");
-        s = apply(&s, r#"([^\.])(.)([\]\[\)}]*)\s*$"#, r"$1 $2$3 ");
+        s = apply(&s, r#"([^\.])(\.)([\]\[\)}>"']*)\s*$"#, r"$1 $2$3 ");
         s = apply(&s, r"[?!]", r" $0 ");
         s = apply(&s, r"([^'])' ", r"$1 ' ");
         s = apply(&s, r"[*]", r" $0 ");
