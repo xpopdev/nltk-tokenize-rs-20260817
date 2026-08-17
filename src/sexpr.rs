@@ -41,11 +41,6 @@ impl TokenizerI for SExprTokenizer {
         while i < bytes.len() {
             let b = bytes[i];
             if b == open_b || b == close_b {
-                let paren = if b == open_b {
-                    &self.open_paren
-                } else {
-                    &self.close_paren
-                };
                 if depth == 0 && b == open_b {
                     let prefix = s[pos..i]
                         .split_whitespace()
@@ -59,7 +54,6 @@ impl TokenizerI for SExprTokenizer {
                         .map(|x| x.to_string())
                         .collect::<Vec<_>>();
                     result.extend(prefix);
-                    pos = i;
                     if self.strict {
                         panic!("Un-matched close paren at char {}", i);
                     }
