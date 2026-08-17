@@ -38,8 +38,20 @@ fn html_unescape(text: &str) -> String {
 }
 
 fn reduce_lengthening(text: &str) -> String {
-    let re = Regex::new(r"(.)\1{2,}").unwrap();
-    re.replace_all(text, "$1$1$1").to_string()
+    let mut out = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        let mut count = 1usize;
+        while chars.peek() == Some(&c) {
+            chars.next();
+            count += 1;
+        }
+        let emit = count.min(3);
+        for _ in 0..emit {
+            out.push(c);
+        }
+    }
+    out
 }
 
 fn remove_handles(text: &str) -> String {
@@ -62,6 +74,27 @@ fn remove_handles(text: &str) -> String {
         }
     }
     out.push_str(&text[last..]);
+    out
+}
+
+fn collapse_hang(text: &str) -> String {
+    let mut out = String::new();
+    let mut chars = text.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c.is_alphanumeric() {
+            out.push(c);
+            continue;
+        }
+        let mut count = 1usize;
+        while chars.peek() == Some(&c) {
+            chars.next();
+            count += 1;
+        }
+        let emit = if count >= 4 { 3 } else { count };
+        for _ in 0..emit {
+            out.push(c);
+        }
+    }
     out
 }
 
@@ -139,8 +172,7 @@ impl TweetTokenizer {
         if self.reduce_len {
             s = reduce_lengthening(&s);
         }
-        let hang_re = Regex::new(r"([^a-zA-Z0-9])\1{3,}").unwrap();
-        let safe = hang_re.replace_all(&s, "$1$1$1").to_string();
+        let safe = collapse_hang(&s);
 
         let re = self.word_re();
         let mut words: Vec<String> = re
