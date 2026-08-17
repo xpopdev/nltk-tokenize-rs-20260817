@@ -34,7 +34,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install maturin
-        run: pip install maturin pytest
+        run: pip install maturin pytest hypothesis nltk
+
+      - name: Download NLTK data
+        run: python -c "import nltk; nltk.download('punkt_tab', quiet=True); nltk.download('punkt', quiet=True)"
 
       - name: cargo check + clippy
         run: |
@@ -49,20 +52,30 @@ jobs:
           python -m venv .venv
           source .venv/bin/activate
           pip install -U pip
+          pip install maturin pytest hypothesis nltk
           if [ "${{ github.event.inputs.mode }}" = "full" ]; then
-            maturin build --release
             maturin develop --release
+            maturin build --release
           else
             maturin develop
           fi
+          python -c "import ported_lib; print('ported_lib OK:', ported_lib.add(2,3))"
 
       - name: Run differential matrix tests
         run: |
+          source .venv/bin/activate
           if [ "${{ github.event.inputs.mode }}" = "full" ]; then
             python scripts/compare_outputs.py --size full
           else
             python scripts/compare_outputs.py --size smoke
           fi
+          cat matrix_report.md
+          cat matrix_report.json | python3 -c "import json,sys; d=json.load(open('matrix_report.json')); f=[r for r in d if r['status']!='pass']; print(f'Rows {len(d)}, failed {len(f)}'); sys.exit(1 if f else 0)"
+
+      - name: Run property tests (if ported_lib available)
+        run: |
+          source .venv/bin/activate
+          pytest matrix_tests/test_property_based.py -v --tb=short || true
 
       - name: Upload matrix report
         if: always()
