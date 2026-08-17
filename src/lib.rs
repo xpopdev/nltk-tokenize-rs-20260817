@@ -43,7 +43,7 @@ fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, lang
     // Bridge to Python punkt for Gutenberg large-corpus correctness when requested
     let bridge = std::env::var("PORTED_LIB_PUNKT_BRIDGE").map(|v| v != "0").unwrap_or(false);
     if !preserve_line && bridge {
-        if let Some(sents) = Python::with_gil(|py2| try_python_punkt(text, &language)) {
+        if let Some(sents) = Python::with_gil(|_py2| try_python_punkt(text, &language)) {
             let convert = convert_parentheses.unwrap_or(false);
             let mut out = Vec::new();
             for sent in &sents { out.extend(NLTKWordTokenizer::tokenize_core(sent, convert)); }
@@ -98,14 +98,14 @@ fn sent_tokenize(py: Python, text: &str, language: String, realign_boundaries: b
 fn try_python_punkt(text: &str, language: &str) -> Option<Vec<String>> {
     Python::with_gil(|py| {
         // Try punkt_tab first (new NLTK 3.9+), then punkt pickle fallback
-        let nltk = py.import("nltk").ok()?;
+        let nltk = py.import_bound("nltk").ok()?;
         let tokenize_mod = nltk.getattr("tokenize").ok()?;
         if let Ok(func) = tokenize_mod.getattr("sent_tokenize") {
             if let Ok(out) = func.call1((text, language)) {
                 if let Ok(v) = out.extract::<Vec<String>>() { return Some(v); }
             }
         }
-        let data = py.import("nltk.data").ok()?;
+        let data = py.import_bound("nltk.data").ok()?;
         for path in [format!("tokenizers/punkt_tab/{}/", language), format!("tokenizers/punkt/{}.pickle", language)] {
             if let Ok(tok) = data.call_method1("load", (path.clone(),)) {
                 if let Ok(out) = tok.call_method1("tokenize", (text,)) {
