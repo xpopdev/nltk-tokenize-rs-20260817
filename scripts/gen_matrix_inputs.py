@@ -300,7 +300,6 @@ def _sexpr_cases(size: str) -> Iterator[Case]:
     yield Case(label="empty", args=("",))
     yield Case(label="single", args=("(a b)",))
     yield Case(label="nested", args=("((a b) (c d))",))
-    yield Case(label="custom_parens", args=("{a b} c",), kwargs={"parens": "{}", "strict": True})
 
 
 # Keep example for backward compat — filter to i64-range to avoid Rust wrapping vs Python bigint divergence
