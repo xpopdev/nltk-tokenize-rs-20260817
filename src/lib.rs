@@ -3,9 +3,11 @@ use pyo3::prelude::*;
 
 pub mod api;
 pub mod casual;
+pub mod deferrable;
 pub mod destructive;
 pub mod mwe;
 pub mod punkt;
+pub mod punkt_trainer;
 pub mod regexp;
 pub mod sexpr;
 pub mod simple;
