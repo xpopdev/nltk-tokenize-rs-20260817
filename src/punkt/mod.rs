@@ -1,5 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use regex::Regex;
+use std::collections::{HashMap, HashSet};
 
 /// Minimal PunktParameters — mirrors nltk.tokenize.punkt.PunktParameters
 /// but only the subsets needed for inference (M2). Training fields deferred to M7.
@@ -15,15 +15,19 @@ impl PunktParameters {
     pub fn english_default() -> Self {
         // Subset of nltk_data punkt english abbrev_types — enough for sentence boundary demo
         let abbrevs = [
-            "mr", "mrs", "ms", "dr", "prof", "inc", "ltd", "jr", "sr", "vs",
-            "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept",
-            "oct", "nov", "dec", "st", "u", "s", "a", "c", "e", "g", "sec",
-            "fig", "figs", "al", "no", "nos", "vol", "pp", "ex", "eg", "ie",
+            "mr", "mrs", "ms", "dr", "prof", "inc", "ltd", "jr", "sr", "vs", "jan", "feb", "mar",
+            "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec", "st", "u", "s", "a",
+            "c", "e", "g", "sec", "fig", "figs", "al", "no", "nos", "vol", "pp", "ex", "eg", "ie",
         ];
         Self {
             abbrev_types: abbrevs.iter().map(|s| s.to_string()).collect(),
             collocations: HashSet::new(),
-            sent_starters: ["the","this","that","it","he","she","we","you","they","i"].iter().map(|s| s.to_string()).collect(),
+            sent_starters: [
+                "the", "this", "that", "it", "he", "she", "we", "you", "they", "i",
+            ]
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
             ortho_context: HashMap::new(),
         }
     }
@@ -51,13 +55,19 @@ pub struct PunktSentenceTokenizer {
 
 impl Default for PunktSentenceTokenizer {
     fn default() -> Self {
-        Self { params: PunktParameters::english_default(), lang_vars: PunktLanguageVars::default() }
+        Self {
+            params: PunktParameters::english_default(),
+            lang_vars: PunktLanguageVars::default(),
+        }
     }
 }
 
 impl PunktSentenceTokenizer {
     pub fn new(params: PunktParameters) -> Self {
-        Self { params, lang_vars: PunktLanguageVars::default() }
+        Self {
+            params,
+            lang_vars: PunktLanguageVars::default(),
+        }
     }
 
     /// Inference: split text into sentences using abbrev-aware rule.
@@ -84,23 +94,42 @@ impl PunktSentenceTokenizer {
                     }
                 }
                 // Is this an abbrev period? Check word before period
-                let word_start = (0..i).rev().find(|&j| !chars[j].is_alphanumeric()).map(|j| j+1).unwrap_or(0);
-                let word: String = chars[word_start..i].iter().collect::<String>().to_lowercase();
+                let word_start = (0..i)
+                    .rev()
+                    .find(|&j| !chars[j].is_alphanumeric())
+                    .map(|j| j + 1)
+                    .unwrap_or(0);
+                let word: String = chars[word_start..i]
+                    .iter()
+                    .collect::<String>()
+                    .to_lowercase();
                 let is_abbrev = self.params.abbrev_types.contains(&word);
                 // Next non-space char should be capital or end for real boundary
                 let mut next = end;
-                while next < chars.len() && chars[next].is_whitespace() { next += 1; }
+                while next < chars.len() && chars[next].is_whitespace() {
+                    next += 1;
+                }
                 let next_is_sent_start = next >= chars.len() || chars[next].is_uppercase();
-                let is_boundary = !is_abbrev && (next_is_sent_start || next >= chars.len() || chars[i] == '!' || chars[i] == '?');
+                let is_boundary = !is_abbrev
+                    && (next_is_sent_start
+                        || next >= chars.len()
+                        || chars[i] == '!'
+                        || chars[i] == '?');
                 if is_boundary {
                     // Include trailing spaces up to next sentence start? NLTK keeps original whitespace inside sentence
                     // We cut at end, then next sentence starts at next
-                    let sent: String = chars[start..end].iter().collect::<String>().trim().to_string();
+                    let sent: String = chars[start..end]
+                        .iter()
+                        .collect::<String>()
+                        .trim()
+                        .to_string();
                     if !sent.is_empty() {
                         sentences.push(sent);
                     }
                     // Skip whitespace
-                    while end < chars.len() && chars[end].is_whitespace() { end += 1; }
+                    while end < chars.len() && chars[end].is_whitespace() {
+                        end += 1;
+                    }
                     start = end;
                     i = end;
                     continue;
@@ -110,9 +139,15 @@ impl PunktSentenceTokenizer {
         }
         if start < chars.len() {
             let tail: String = chars[start..].iter().collect::<String>().trim().to_string();
-            if !tail.is_empty() { sentences.push(tail); }
+            if !tail.is_empty() {
+                sentences.push(tail);
+            }
         }
-        if sentences.is_empty() { vec![text.trim().to_string()] } else { sentences }
+        if sentences.is_empty() {
+            vec![text.trim().to_string()]
+        } else {
+            sentences
+        }
     }
 
     pub fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
@@ -130,7 +165,11 @@ mod tests {
         let s = "Mr. Smith went to Washington. He saw Dr. Jones.";
         let out = tok.tokenize(s, true);
         assert!(out.len() >= 2, "should split into >=2, got {:?}", out);
-        assert!(out[0].contains("Mr. Smith"), "first sent should keep abbrev, got {:?}", out[0]);
+        assert!(
+            out[0].contains("Mr. Smith"),
+            "first sent should keep abbrev, got {:?}",
+            out[0]
+        );
     }
     #[test]
     fn empty() {
