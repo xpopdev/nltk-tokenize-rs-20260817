@@ -307,7 +307,7 @@ fn gpu_warmup() {
 #[pyfunction]
 #[pyo3(signature = (text, convert_parentheses=None))]
 fn word_tokenize_gpu(py: Python, text: &str, convert_parentheses: Option<bool>) -> PyResult<Vec<String>> {
-    word_tokenize(py, text, convert_parentheses)
+    word_tokenize(py, text, convert_parentheses, "english".to_string(), false)
 }
 
 #[pyfunction]
