@@ -52,8 +52,8 @@ pub fn detokenize(tokens: &[String], convert_parentheses: bool) -> String {
     text.push(' ');
     text.push_str(&tokens.join(" "));
     text.push(' ');
-    text = DT_RE_C3.replace_all(&text, "$1$2").to_string();
-    text = DT_RE_C2.replace_all(&text, "$1$2").to_string();
+    text = DT_RE_C3.replace_all(&text, "$1$2 ").to_string();
+    text = DT_RE_C2.replace_all(&text, "$1$2 ").to_string();
     text = DT_RE_END3.replace_all(&text, "$1$2").to_string();
     text = DT_RE_END4.replace_all(&text, "$1$2").to_string();
     text = DT_RE_DQ.replace_all(&text, "\"").to_string();

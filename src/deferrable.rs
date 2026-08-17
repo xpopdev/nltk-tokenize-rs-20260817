@@ -98,6 +98,7 @@ impl Default for LegalityPrincipleTokenizer {
 
 impl TokenizerI for LegalityPrincipleTokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
+        if s.is_empty() { return vec!["".to_string()]; }
         s.split_whitespace().flat_map(|w| self.tokenize_word(w)).collect()
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
@@ -175,6 +176,7 @@ impl Default for SonoritySequencingTokenizer {
 
 impl TokenizerI for SonoritySequencingTokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
+        if s.is_empty() { return vec!["".to_string()]; }
         s.split_whitespace().flat_map(|w| self.tokenize_word(w)).collect()
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
