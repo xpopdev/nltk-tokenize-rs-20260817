@@ -1,5 +1,20 @@
+use std::sync::LazyLock;
+
+use regex::Regex;
+
 use crate::api::TokenizerI;
 use crate::regex_cache::cached_regex;
+
+static NUMERIC_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"&#(x?)([0-9a-fA-F]+);").unwrap());
+static HANDLE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"@\w{1,15}\b").unwrap());
+static EMOTICON_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(?:[<>]?[:;=8][\-o\*']?[\)\]\(\[dDpP/:\}\{@\|\\]|[\)\]\(\[dDpP/:\}\{@\|\\][\-o\*']?[:;=8][<>]?|</?3)").unwrap()
+});
+static WORD_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(&build_word_pattern(true)).unwrap());
+static WORD_RE_NO_PHONE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(&build_word_pattern(false)).unwrap());
 
 fn html_unescape(text: &str) -> String {
     let mut s = text.to_string();
@@ -17,8 +32,7 @@ fn html_unescape(text: &str) -> String {
     for (ent, chr) in entities {
         s = s.replace(ent, chr);
     }
-    let numeric_re = cached_regex(r"&#(x?)([0-9a-fA-F]+);");
-    let s2 = numeric_re
+    let s2 = NUMERIC_RE
         .replace_all(&s, |caps: &regex::Captures| {
             let is_hex = &caps[1] == "x" || &caps[1] == "X";
             let num_str = &caps[2];
@@ -54,10 +68,9 @@ fn reduce_lengthening(text: &str) -> String {
 }
 
 fn remove_handles(text: &str) -> String {
-    let re = cached_regex(r"@\w{1,15}\b");
     let mut out = String::new();
     let mut last = 0usize;
-    for m in re.find_iter(text) {
+    for m in HANDLE_RE.find_iter(text) {
         let s = m.start();
         let is_boundary = if s == 0 {
             true
@@ -158,9 +171,12 @@ impl TweetTokenizer {
         }
     }
 
-    fn word_re(&self) -> regex::Regex {
-        let pat = build_word_pattern(self.match_phone_numbers);
-        cached_regex(&pat)
+    fn word_re(&self) -> &'static Regex {
+        if self.match_phone_numbers {
+            &WORD_RE
+        } else {
+            &WORD_RE_NO_PHONE
+        }
     }
 
     pub fn tokenize(&self, text: &str) -> Vec<String> {
@@ -180,12 +196,10 @@ impl TweetTokenizer {
             .collect();
 
         if !self.preserve_case {
-            let emoticon_re =
-                cached_regex(r"(?i)(?:[<>]?[:;=8][\-o\*']?[\)\]\(\[dDpP/:\}\{@\|\\]|[\)\]\(\[dDpP/:\}\{@\|\\][\-o\*']?[:;=8][<>]?|</?3)");
             words = words
                 .into_iter()
                 .map(|w| {
-                    if emoticon_re.is_match(&w) {
+                    if EMOTICON_RE.is_match(&w) {
                         w
                     } else {
                         w.to_lowercase()
