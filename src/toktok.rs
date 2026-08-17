@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::LazyLock;
 use regex::Regex;
 
@@ -70,21 +71,21 @@ impl TokenizerI for ToktokTokenizer {
 
 fn tokenize_inner(text: &str) -> String {
     let mut s = RE_PIPE.replace_all(text, " &#124; ").to_string();
-    s = RE_TAB.replace_all(&s, " ").to_string();
-    s = RE_BRACKETS.replace_all(&s, " $1 ").to_string();
-    s = RE_URL_PUNCT.replace_all(&s, " $1 ").to_string();
+    if let Cow::Owned(o) = RE_TAB.replace_all(&s, " ") { s = o; }
+    if let Cow::Owned(o) = RE_BRACKETS.replace_all(&s, " $1 ") { s = o; }
+    if let Cow::Owned(o) = RE_URL_PUNCT.replace_all(&s, " $1 ") { s = o; }
     s = apply_with_lookahead_colon(&s);
-    s = RE_COMMA.replace_all(&s, " $1 ").to_string();
-    s = RE_QUOTE.replace_all(&s, " $1 ").to_string();
-    s = RE_CC1.replace_all(&s, " `` ").to_string();
-    s = RE_CC2.replace_all(&s, " '' ").to_string();
-    s = RE_COMMA2.replace_all(&s, " $1 ").to_string();
-    s = RE_DASH2.replace_all(&s, " $1 ").to_string();
-    s = RE_DOTS.replace_all(&s, " $1 ").to_string();
+    if let Cow::Owned(o) = RE_COMMA.replace_all(&s, " $1 ") { s = o; }
+    if let Cow::Owned(o) = RE_QUOTE.replace_all(&s, " $1 ") { s = o; }
+    if let Cow::Owned(o) = RE_CC1.replace_all(&s, " `` ") { s = o; }
+    if let Cow::Owned(o) = RE_CC2.replace_all(&s, " '' ") { s = o; }
+    if let Cow::Owned(o) = RE_COMMA2.replace_all(&s, " $1 ") { s = o; }
+    if let Cow::Owned(o) = RE_DASH2.replace_all(&s, " $1 ") { s = o; }
+    if let Cow::Owned(o) = RE_DOTS.replace_all(&s, " $1 ") { s = o; }
     if s.ends_with('.') && !s.ends_with("..") {
-        s = RE_FINAL_DOT.replace(&s, " .").to_string();
+        if let Cow::Owned(o) = RE_FINAL_DOT.replace(&s, " .") { s = o; }
     }
-    s = RE_WS2.replace_all(&s, " ").to_string();
+    if let Cow::Owned(o) = RE_WS2.replace_all(&s, " ") { s = o; }
     s.trim().to_string()
 }
 

@@ -1,6 +1,18 @@
 use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
+const ABBREVS_SORTED: &[&str] = &[
+    "a", "al", "apr", "aug", "c", "dec", "dr", "e", "eg", "ex", "feb", "fig", "figs",
+    "g", "ie", "inc", "jan", "jr", "jul", "jun", "ltd", "mar", "mr", "mrs", "ms", "no",
+    "nos", "nov", "oct", "pp", "prof", "s", "sec", "sep", "sept", "sr", "st", "u", "vol",
+    "vs",
+];
+
+#[inline]
+fn is_abbrev_fast(word: &str) -> bool {
+    ABBREVS_SORTED.binary_search(&word).is_ok()
+}
+
 /// Minimal PunktParameters — mirrors nltk.tokenize.punkt.PunktParameters
 /// but only the subsets needed for inference (M2). Training fields deferred to M7.
 #[derive(Debug, Clone, Default)]
@@ -12,6 +24,12 @@ pub struct PunktParameters {
 }
 
 impl PunktParameters {
+    #[inline]
+    pub fn is_abbrev(&self, word: &str) -> bool {
+        // Fast path: static sorted slice binary_search avoids HashSet hashing
+        if is_abbrev_fast(word) { return true; }
+        self.abbrev_types.contains(word)
+    }
     pub fn english_default() -> Self {
         Self::english_default_static().clone()
     }
@@ -106,7 +124,7 @@ impl PunktSentenceTokenizer {
                     .iter()
                     .collect::<String>()
                     .to_lowercase();
-                let is_abbrev = self.params.abbrev_types.contains(&word);
+                let is_abbrev = self.params.is_abbrev(&word);
                 // Next non-space char should be capital or end for real boundary
                 let mut next = end;
                 while next < chars.len() && chars[next].is_whitespace() {

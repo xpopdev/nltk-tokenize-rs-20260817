@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::LazyLock;
 
 use regex::Regex;
@@ -29,10 +30,10 @@ fn html_unescape(text: &str) -> String {
         ("&pound;", "\u{00A3}"),
     ];
     for (ent, chr) in entities {
-        s = s.replace(ent, chr);
+        if s.contains(ent) { s = s.replace(ent, chr); }
     }
-    let s2 = NUMERIC_RE
-        .replace_all(&s, |caps: &regex::Captures| {
+    if !s.contains("&#") { return s; }
+    let s2 = NUMERIC_RE.replace_all(&s, |caps: &regex::Captures| {
             let is_hex = &caps[1] == "x" || &caps[1] == "X";
             let num_str = &caps[2];
             let num = if is_hex {

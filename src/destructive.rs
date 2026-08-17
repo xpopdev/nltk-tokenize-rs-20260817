@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::sync::LazyLock;
 use regex::Regex;
 
@@ -66,9 +67,9 @@ impl NLTKWordTokenizer {
         let mut s = text.to_string();
 
         s = RE_Q1.replace_all(&s, " $1 ").to_string();
-        s = RE_Q2.replace(&s, "``").to_string();
-        s = RE_Q3.replace_all(&s, " $1 ").to_string();
-        s = RE_Q4.replace_all(&s, "$1 `` ").to_string();
+        if let Cow::Owned(o) = RE_Q2.replace(&s, "``") { s = o; }
+        if let Cow::Owned(o) = RE_Q3.replace_all(&s, " $1 ") { s = o; }
+        if let Cow::Owned(o) = RE_Q4.replace_all(&s, "$1 `` ") { s = o; }
         {
             let excludes = ["re", "ve", "ll", "m", "t", "s", "d", "n"];
             s = RE_CLITIC
@@ -88,47 +89,47 @@ impl NLTKWordTokenizer {
         }
 
         s = RE_P1.replace_all(&s, "$1 $2 $3 ").to_string();
-        s = RE_P2.replace_all(&s, " $1 $2").to_string();
-        s = RE_P3.replace_all(&s, " $1 ").to_string();
-        s = RE_P4.replace_all(&s, " $0 ").to_string();
-        s = RE_P5.replace_all(&s, " $0 ").to_string();
-        s = RE_P6.replace_all(&s, "$1 $2$3 ").to_string();
-        s = RE_P7.replace_all(&s, " $0 ").to_string();
-        s = RE_P8.replace_all(&s, "$1 ' ").to_string();
-        s = RE_P9.replace_all(&s, " $0 ").to_string();
+        if let Cow::Owned(o) = RE_P2.replace_all(&s, " $1 $2") { s = o; }
+        if let Cow::Owned(o) = RE_P3.replace_all(&s, " $1 ") { s = o; }
+        if let Cow::Owned(o) = RE_P4.replace_all(&s, " $0 ") { s = o; }
+        if let Cow::Owned(o) = RE_P5.replace_all(&s, " $0 ") { s = o; }
+        if let Cow::Owned(o) = RE_P6.replace_all(&s, "$1 $2$3 ") { s = o; }
+        if let Cow::Owned(o) = RE_P7.replace_all(&s, " $0 ") { s = o; }
+        if let Cow::Owned(o) = RE_P8.replace_all(&s, "$1 ' ") { s = o; }
+        if let Cow::Owned(o) = RE_P9.replace_all(&s, " $0 ") { s = o; }
 
-        s = RE_PARENS.replace_all(&s, " $0 ").to_string();
+        if let Cow::Owned(o) = RE_PARENS.replace_all(&s, " $0 ") { s = o; }
 
         if convert_parentheses {
-            s = RE_LRB.replace_all(&s, "-LRB-").to_string();
-            s = RE_RRB.replace_all(&s, "-RRB-").to_string();
-            s = RE_LSB.replace_all(&s, "-LSB-").to_string();
-            s = RE_RSB.replace_all(&s, "-RSB-").to_string();
-            s = RE_LCB.replace_all(&s, "-LCB-").to_string();
-            s = RE_RCB.replace_all(&s, "-RCB-").to_string();
+            if let Cow::Owned(o) = RE_LRB.replace_all(&s, "-LRB-") { s = o; }
+            if let Cow::Owned(o) = RE_RRB.replace_all(&s, "-RRB-") { s = o; }
+            if let Cow::Owned(o) = RE_LSB.replace_all(&s, "-LSB-") { s = o; }
+            if let Cow::Owned(o) = RE_RSB.replace_all(&s, "-RSB-") { s = o; }
+            if let Cow::Owned(o) = RE_LCB.replace_all(&s, "-LCB-") { s = o; }
+            if let Cow::Owned(o) = RE_RCB.replace_all(&s, "-RCB-") { s = o; }
         }
 
-        s = RE_DASH.replace_all(&s, " -- ").to_string();
+        if let Cow::Owned(o) = RE_DASH.replace_all(&s, " -- ") { s = o; }
 
         s.reserve(2); s.insert(0, ' '); s.push(' ');
 
-        s = RE_RQUOTE.replace_all(&s, " $1 ").to_string();
-        s = RE_DQ.replace_all(&s, " '' ").to_string();
-        s = RE_Q.replace_all(&s, " '' ").to_string();
-        s = RE_WS.replace_all(&s, " ").to_string();
-        s = RE_C1.replace_all(&s, "$1 $2 ").to_string();
-        s = RE_C2.replace_all(&s, "$1 $2 ").to_string();
+        if let Cow::Owned(o) = RE_RQUOTE.replace_all(&s, " $1 ") { s = o; }
+        if let Cow::Owned(o) = RE_DQ.replace_all(&s, " '' ") { s = o; }
+        if let Cow::Owned(o) = RE_Q.replace_all(&s, " '' ") { s = o; }
+        if let Cow::Owned(o) = RE_WS.replace_all(&s, " ") { s = o; }
+        if let Cow::Owned(o) = RE_C1.replace_all(&s, "$1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_C2.replace_all(&s, "$1 $2 ") { s = o; }
 
-        s = RE_CONT_CAN.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_DYE.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_GIM.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_GON.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_GOT.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_LEM.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_MORE.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_CONT_WAN.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_TIS.replace_all(&s, " $1 $2 ").to_string();
-        s = RE_TWAS.replace_all(&s, " $1 $2 ").to_string();
+        if let Cow::Owned(o) = RE_CONT_CAN.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_DYE.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_GIM.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_GON.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_GOT.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_LEM.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_MORE.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_CONT_WAN.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_TIS.replace_all(&s, " $1 $2 ") { s = o; }
+        if let Cow::Owned(o) = RE_TWAS.replace_all(&s, " $1 $2 ") { s = o; }
 
         s.split_whitespace().map(|x| x.to_string()).collect()
     }
