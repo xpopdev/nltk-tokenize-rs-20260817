@@ -2,10 +2,12 @@
 use pyo3::prelude::*;
 
 pub mod destructive;
+pub mod punkt;
 pub mod treebank;
 pub mod util;
 
 use destructive::NLTKWordTokenizer;
+use punkt::PunktSentenceTokenizer;
 
 pub fn add_core(a: i64, b: i64) -> i64 { a + b }
 
@@ -23,11 +25,20 @@ fn word_tokenize_span(text: String) -> PyResult<Vec<(usize, usize)>> {
     Ok(NLTKWordTokenizer::span_tokenize_core(&text))
 }
 
+#[pyfunction]
+#[pyo3(signature = (text, language="english".to_string(), realign_boundaries=true))]
+fn sent_tokenize(text: String, language: String, realign_boundaries: bool) -> PyResult<Vec<String>> {
+    let _ = language; // M2 uses english_default; language-specific loading is M7 / asset pipeline
+    let tok = PunktSentenceTokenizer::default();
+    Ok(tok.tokenize(&text, realign_boundaries))
+}
+
 #[pymodule]
 fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(add, m)?)?;
     m.add_function(wrap_pyfunction!(word_tokenize, m)?)?;
     m.add_function(wrap_pyfunction!(word_tokenize_span, m)?)?;
+    m.add_function(wrap_pyfunction!(sent_tokenize, m)?)?;
     Ok(())
 }
 
