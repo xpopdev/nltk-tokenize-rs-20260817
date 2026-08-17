@@ -1,0 +1,24 @@
+[package]
+name = "ported_lib"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+# cdylib -> importable Python extension module; rlib -> also usable as a
+# normal Rust crate (needed for `cargo test` on the pure-Rust core).
+crate-type = ["cdylib", "rlib"]
+name = "ported_lib"
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module"] }
+regex = "1.10"
+fancy-regex = { version = "0.13", optional = true }
+
+[features]
+default = []
+punkt-fancy = ["fancy-regex"]
+
+[dev-dependencies]
+# Property-based testing pairs well with the matrix-testing approach on
+# the Rust side, in addition to the Python-level differential tests.
+proptest = "1"

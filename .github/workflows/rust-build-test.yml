@@ -1,0 +1,78 @@
+name: rust-build-test
+
+# Triggered manually (usually by the ci-dispatcher subagent running
+# `gh workflow run rust-build-test.yml --ref <branch> -f mode=full`
+# from a resource-constrained device), or on PRs for normal CI coverage.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "smoke (fast subset) or full (release build + full matrix)"
+        required: false
+        default: "smoke"
+        type: choice
+        options: [smoke, full]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install maturin
+        run: pip install maturin pytest
+
+      - name: cargo check + clippy
+        run: |
+          cargo check --all-targets
+          cargo clippy --all-targets -- -D warnings
+
+      - name: cargo test (unit tests)
+        run: cargo test --all
+
+      - name: Build extension
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            maturin build --release
+            maturin develop --release
+          else
+            maturin develop
+          fi
+
+      - name: Run differential matrix tests
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "full" ]; then
+            python scripts/compare_outputs.py --size full
+          else
+            python scripts/compare_outputs.py --size smoke
+          fi
+
+      - name: Upload matrix report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matrix-report
+          path: |
+            matrix_report.md
+            matrix_report.json
+
+      - name: Upload built wheels
+        if: github.event.inputs.mode == 'full'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels
+          path: target/wheels/*.whl

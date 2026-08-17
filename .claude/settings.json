@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git checkout*)",
+      "Bash(git branch*)",
+      "Bash(git push*)",
+      "Bash(git log*)",
+      "Bash(git init*)",
+      "Bash(git remote*)",
+      "Bash(gh workflow run*)",
+      "Bash(gh run watch*)",
+      "Bash(gh run list*)",
+      "Bash(gh run view*)",
+      "Bash(gh run download*)",
+      "Bash(gh pr create*)",
+      "Bash(gh auth status*)",
+      "Bash(gh auth login*)",
+      "Bash(gh repo create*)",
+      "Bash(gh repo view*)",
+      "Bash(cargo *)",
+      "Bash(rustc *)",
+      "Bash(rustup *)",
+      "Bash(maturin *)",
+      "Bash(python3 *)",
+      "Bash(pip install*)",
+      "Bash(pytest*)",
+      "Bash(uv *)",
+      "Bash(ls*)",
+      "Bash(cat*)",
+      "Bash(find*)",
+      "Bash(grep*)",
+      "Bash(rg*)",
+      "Bash(mkdir*)",
+      "Bash(free*)",
+      "Bash(nproc*)",
+      "Bash(sudo -v*)",
+      "Bash(sudo -n*)",
+      "Bash(sudo apt-get*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)",
+      "Bash(apt-get*)",
+      "Bash(dpkg *)",
+      "Bash(curl *)",
+      "Bash(sh /tmp/*)",
+      "Bash(source */.cargo/env*)",
+      "Bash(chmod *)",
+      "Bash(install -D*)",
+      "Bash(sudo install -D*)",
+      "Bash(bash scripts/*)",
+      "Bash(make *)",
+      "Read(**)",
+      "Write(**)",
+      "Edit(**)",
+      "Bash(**)"
+
+    ],
+    "deny": [
+    ]
+  },
+  "sandbox": {
+    "enabled": true
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_commit.py\"",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/format_on_write.sh\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/notify.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

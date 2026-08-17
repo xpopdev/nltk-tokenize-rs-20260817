@@ -1,0 +1,13 @@
+/target
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+matrix-report/
+*.whl
+.pytest_cache/
+.hypothesis/
+benchmark_report.md
+benchmark_report.json
