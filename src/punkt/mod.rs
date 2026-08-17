@@ -117,7 +117,7 @@ impl PunktSentenceTokenizer {
 
     pub fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let sents = self.tokenize(text, true);
-        crate::destructive::align_tokens(&sents.iter().cloned().collect::<Vec<_>>(), text)
+        crate::destructive::align_tokens(&sents.to_vec(), text)
     }
 }
 
