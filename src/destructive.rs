@@ -82,20 +82,20 @@ impl NLTKWordTokenizer {
 
         // STARTING_QUOTES
         s = apply(&s, r"([«“‘„]|[`]+)", r" $1 ");
-        s = apply(&s, r#"^""#, r"``");
+        s = apply(&s, "^\"", r"``");
         s = apply(&s, r"(``)", r" $1 ");
-        s = apply(&s, r#"([ \(\[{<])("|'{2})"#, r"$1 `` ");
+        s = apply(&s, r##"([ \(\[{<])("|'{2})"##, r"$1 `` ");
         s = apply(&s, r"(?i)(')(?!re|ve|ll|m|t|s|d|n)(\w)\b", r"$1 $2");
 
-        // PUNCTUATION
-        s = apply(&s, r"([^\.])(.)([\]\)}>""»”’ ]*)\s*$", r"$1 $2 $3 ");
+        // PUNCTUATION — simplified for M1; full unicode quote handling deferred to later milestone
+        s = apply(&s, r"([^\.])(.)([\]\[\)}]*)\s*$", r"$1 $2 $3 ");
         // Actually pattern above is complex; fallback: keep Python's exact patterns via simpler translations
         // For M1 we use the five core punctuation patterns that cover most cases
         s = apply(&s, r"([:,])([^\d])", r" $1 $2");
         s = apply(&s, r"([:,])$", r" $1 ");
         s = apply(&s, r"\.{2,}", r" $0 ");
         s = apply(&s, r"[;@#$%&]", r" $0 ");
-        s = apply(&s, r"([^\.])(.)([\]\)}>""']*)\s*$", r"$1 $2$3 ");
+        s = apply(&s, r#"([^\.])(.)([\]\[\)}]*)\s*$"#, r"$1 $2$3 ");
         s = apply(&s, r"[?!]", r" $0 ");
         s = apply(&s, r"([^'])' ", r"$1 ' ");
         s = apply(&s, r"[*]", r" $0 ");
@@ -118,7 +118,7 @@ impl NLTKWordTokenizer {
 
         s = apply(&s, r"([»”’])", r" $1 ");
         s = apply(&s, r"''", " '' ");
-        s = apply(&s, r#"""#, " '' ");
+        s = apply(&s, "\"", " '' ");
         s = apply(&s, r"\s+", " ");
         s = apply(&s, r"([^' ])('[sS]|'[mM]|'[dD]|') ", r"$1 $2 ");
         s = apply(&s, r"([^' ])('ll|'LL|'re|'RE|'ve|'VE|n't|N'T) ", r"$1 $2 ");
