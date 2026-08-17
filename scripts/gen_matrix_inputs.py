@@ -16,6 +16,7 @@ Usage:
 from __future__ import annotations
 
 import random
+import string
 from dataclasses import dataclass, field
 from typing import Any, Callable, Iterator
 
@@ -77,7 +78,237 @@ def cases_for(fn_name: str, size: str = "smoke") -> Iterator[Case]:
     yield from CASE_GENERATORS[fn_name](size)
 
 
-# --- Example (delete once real generators are registered) -----------------
+# ---------------------------------------------------------------------------
+# Shared edge corpora — representative of nltk.tokenize usage
+# ---------------------------------------------------------------------------
+
+_WORD_CASES = [
+    ("empty", ""),
+    ("single_word", "hello"),
+    ("punct", "Hello, world."),
+    ("quotes", 'He said "hello".'),
+    ("currency", "It costs $5.00."),
+    ("contraction", "I can't do it."),
+    ("contraction2", "They've gone."),
+    ("parens", "Hello (world) test."),
+    ("brackets", "a [b] c"),
+    ("ellipsis", "Wait... what?"),
+    ("unicode", "café naïve résumé"),
+    ("emoji", "Hello 😀 world 🚀"),
+    ("whitespace", "  hello   world  "),
+    ("newlines", "hello\nworld"),
+    ("long", " ".join(["hello"] * 100)),
+]
+
+_SENT_CASES = [
+    ("empty", ""),
+    ("single", "Hello world."),
+    ("two", "Hello world. How are you?"),
+    ("abbrev", "Mr. Smith went home. He left."),
+    ("abbrev2", "Dr. Jones and Mrs. Smith met."),
+    ("ellipsis", "Wait... What happened? Nothing."),
+    ("quotes", 'He said "Hello." She replied.'),
+    ("long", " ".join(["This is a sentence."] * 10)),
+]
+
+_TWEET_CASES = [
+    ("plain", "Hello world"),
+    ("hashtag", "I love #rust!"),
+    ("handle", "Hey @user how are you?"),
+    ("url", "Visit https://example.com today"),
+    ("url2", "Check http://example.org/path?q=1"),
+    ("emoticon", "Hello :) world :("),
+    ("emoji_flag", "Flag 🇬🇧 test"),
+    ("email", "Contact foo@example.com"),
+    ("phone", "Call +1 (555) 123-4567"),
+    ("lengthening", "sooooo cool"),
+    ("arabic_handle", "مرحبا @user"),
+]
+
+# ---------------------------------------------------------------------------
+# Generators — one per ported function (keys match FUNCTION_PAIRS in compare_outputs.py)
+# ---------------------------------------------------------------------------
+
+@register("word_tokenize")
+def _word_cases(size: str) -> Iterator[Case]:
+    for label, text in _WORD_CASES:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        rng = random.Random(SEED)
+        for i in range(20):
+            words = ["".join(rng.choices(string.ascii_letters, k=rng.randint(1, 8))) for _ in range(rng.randint(1, 10))]
+            punct = rng.choice([".", ",", "!", "?", ""])
+            yield Case(label=f"random_{i}", args=(" ".join(words) + punct,))
+
+
+@register("sent_tokenize")
+def _sent_cases(size: str) -> Iterator[Case]:
+    for label, text in _SENT_CASES:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        rng = random.Random(SEED + 1)
+        sents = ["Hello world. ", "Mr. Smith went. ", "What? ", "Fine! "]
+        for i in range(10):
+            txt = "".join(rng.choices(sents, k=rng.randint(1, 5)))
+            yield Case(label=f"random_{i}", args=(txt,))
+
+
+@register("regexp_tokenize")
+def _regexp_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("word", ("hello   world", r"\w+", False, True)),
+        ("gaps", ("hello   world", r"\s+", True, True)),
+        ("gaps_keep_empty", ("hello   world", r"\s+", True, False)),
+        ("punct", ("Hello, world.", r"\w+", False, True)),
+        ("empty_text", ("", r"\w+", False, True)),
+        ("no_match", ("hello", r"\d+", False, True)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+    # also test pattern with unicode
+    yield Case(label="unicode_pattern", args=("café naïve", r"\w+", False, True))
+
+
+@register("string_span_tokenize")
+def _string_span_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("basic", ("a b c", " ")),
+        ("empty", ("", " ")),
+        ("no_sep", ("hello", " ")),
+        ("multi_char_sep", ("a,,b,,c", ",,")),
+        ("unicode", ("a b café", " ")),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("regexp_span_tokenize")
+def _regexp_span_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("spaces", ("a b  c", r"\s+")),
+        ("empty", ("", r"\s+")),
+        ("no_match", ("hello", r"\d+")),
+        ("word_bound", ("hello world", r"\s+")),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("spans_to_relative")
+def _spans_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("empty", ([],)),
+        ("single", ([(0, 5)],)),
+        ("two", ([(0, 5), (6, 11)],)),
+        ("three", ([(0, 3), (4, 7), (8, 12)],)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("is_cjk")
+def _cjk_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("ascii", ("a",)),
+        ("cjk_true", ("\u33fe",)),
+        ("cjk_false", ("\ufe5f",)),
+        ("han", ("\u4e00",)),
+        ("hangul", ("\uac00",)),
+        ("emoji", ("😀",)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("xml_escape")
+def _xml_escape_cases(size: str) -> Iterator[Case]:
+    # xml_escape in NLTK takes (text, ...) with optional flags — test plain escaping
+    cases = [
+        ("plain", ("hello",)),
+        ("amp", ("a & b",)),
+        ("lt_gt", ("a <b>",)),
+        ("quotes", ('a "b" \'c\'',)),
+        ("brackets", ("a [b] | c",)),
+        ("all", ('a & b <c> \'d\' "e" [f] | g',)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("xml_unescape")
+def _xml_unescape_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("plain", ("hello",)),
+        ("amp", ("a &amp; b",)),
+        ("lt", ("a &lt;b&gt;",)),
+        ("all", ("a &amp; b &lt;c&gt; &apos;d&apos; &quot;e&quot; &#124; &#91;f&#93;",)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("align_tokens")
+def _align_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("basic", ([["hello", "world"], "hello world"],)),
+        ("single", ([["hello"], "hello"],)),
+        ("punct", ([["Hello", ",", "world"], "Hello, world"],)),
+    ]
+    # unpack for compare_outputs: (tokens, sentence) -> spans
+    for label, args in cases:
+        tokens, sent = args[0]
+        yield Case(label=label, args=(tokens, sent))
+
+
+@register("casual_tokenize")
+def _casual_cases(size: str) -> Iterator[Case]:
+    for label, text in _TWEET_CASES:
+        yield Case(label=label, args=(text,))
+    if size == "full":
+        # flags matrix
+        yield Case(label="preserve_case_false", args=("Hello WORLD :)",), kwargs={"preserve_case": False})
+        yield Case(label="reduce_len", args=("sooooo cool",), kwargs={"reduce_len": True})
+        yield Case(label="strip_handles", args=("@user hello",), kwargs={"strip_handles": True})
+
+
+@register("toktok_tokenize")
+def _toktok_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("basic", ("Hello, world.",)),
+        ("parens", ("Hello (world) test.",)),
+        ("empty", ("",)),
+        ("unicode", ("café naïve",)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+@register("mwe_tokenize")
+def _mwe_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("basic", ([["a", "little", "bit", "goes"], [["a", "little", "bit"]]],)),
+        ("no_mwe", ([["hello", "world"], [["foo", "bar"]]],)),
+        ("overlap", ([["a", "little", "bit", "of", "a", "little"], [["a", "little", "bit"], ["a", "little"]]],)),
+    ]
+    for label, args in cases:
+        tokens, mwes = args[0]
+        yield Case(label=label, args=(tokens, mwes))
+
+
+@register("sexpr_tokenize")
+def _sexpr_cases(size: str) -> Iterator[Case]:
+    cases = [
+        ("basic", ("(a b (c d)) e f (g)",)),
+        ("empty", ("",)),
+        ("single", ("(a b)",)),
+        ("no_parens", ("a b c",)),
+        ("nested", ("((a b) (c d))",)),
+    ]
+    for label, args in cases:
+        yield Case(label=label, args=args)
+
+
+# Keep example for backward compat
 @register("example.add")
 def _example_add_cases(size: str) -> Iterator[Case]:
     for i in boundary_ints():
