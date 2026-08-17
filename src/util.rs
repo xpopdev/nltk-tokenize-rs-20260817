@@ -56,6 +56,39 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
 }
 
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
+    if pattern == r"\s+" {
+        // fast whitespace spans without regex engine
+        if s.is_ascii() {
+            let mut out = Vec::new();
+            let mut left = 0usize;
+            let bytes = s.as_bytes();
+            for i, &b in bytes.iter().enumerate() {
+                let is_ws = b == b' ' || b == b'\t' || b == b'\n' || b == b'\r';
+                // use split logic: spans are gaps between \s+
+                // mimic WhitespaceTokenizer span logic: tokens are non-ws runs
+            }
+            // reuse manual scan: collect token spans (non-ws)
+            let mut out2 = Vec::new();
+            let mut char_idx = 0usize;
+            let mut in_tok = false;
+            let mut tok_start = 0usize;
+            for c in s.chars() {
+                if c.is_whitespace() {
+                    if in_tok { out2.push((tok_start, char_idx)); in_tok = false; }
+                } else {
+                    if !in_tok { tok_start = char_idx; in_tok = true; }
+                }
+                char_idx += 1;
+            }
+            if in_tok { out2.push((tok_start, char_idx)); }
+            // regexp_span_tokenize with gaps=true,discard_empty=true returns token spans, but with gaps=false would be different
+            // For \s+ gaps semantics, token spans are what we just computed; empty-filtered.
+            // To match general regexp_span_tokenize gaps behavior (which returns gaps between matches), we need to know gaps.
+            // The callers use regexp_span_tokenize as gaps-between-matches: our earlier impl does gaps logic.
+            // For \s+ the gaps logic yields same as token spans, so return out2.
+            return out2;
+        }
+    }
     let re = cached_regex(pattern);
     if s.is_ascii() {
         let mut out = Vec::new();
