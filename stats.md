@@ -3,10 +3,10 @@
 > **Rust-backed drop-in for NLTK 3.9.2 tokenizers.** Same Python API, same outputs — an order of magnitude faster. Built with PyO3 + maturin, proven by differential testing.
 
 ```
-  nltk (Python) ──►  word_tokenize  ──►  1705 µs/call
-ported (Rust)   ──►  word_tokenize  ──►    34 µs/call   49.6× faster
-  nltk (Python) ──►  sent_tokenize  ──►   718 µs/call
-ported (Rust)   ──►  sent_tokenize  ──►    10 µs/call   69.9× faster
+  nltk (Python) ──►  word_tokenize  ──►  1798 µs/call
+ported (Rust)   ──►  word_tokenize  ──►    35 µs/call   50.7× faster
+  nltk (Python) ──►  sent_tokenize  ──►   726 µs/call
+ported (Rust)   ──►  sent_tokenize  ──►    10 µs/call   70.6× faster
 ```
 
 ---
@@ -18,11 +18,11 @@ ported (Rust)   ──►  sent_tokenize  ──►    10 µs/call   69.9× fast
 | **Correctness** | **420 / 420** matrix cases pass — zero failures (`full`) |
 | **Unit tests** | **39 / 39** Rust + Python tests pass |
 | **Clippy** | `-D warnings` clean on `cargo clippy --all-targets` |
-| **Peak speedup** | **69.9×** (`sent_tokenize`) |
-| **Median speedup** | **2.9×** across all 27 functions |
+| **Peak speedup** | **70.6×** (`sent_tokenize`) |
+| **Median speedup** | **3.0×** across all 27 functions |
 | **Install** | `pip install ported-lib` · `maturin develop --release` |
 
-> Latest verified run: **CI #32018596400** · `cargo check + clippy` ✓ · `cargo test` ✓ · `maturin --release` ✓ · matrix `full` 420/420 ✓ · benchmark ✓
+> Latest verified run: **CI #32020429615** · `cargo check + clippy` ✓ · `cargo test` ✓ · `maturin --release` ✓ · matrix `full` 420/420 ✓ · benchmark ✓
 
 ---
 
@@ -32,55 +32,52 @@ Benchmark: median of 7 runs × warmup (LazyLock init excluded), same `FUNCTION_P
 
 | Function | `nltk` (µs) | `ported_lib` (µs) | Speedup | Bar (log scale) |
 |---|---:|---:|---:|---|
-| `sent_tokenize` | 717.63 | **10.26** | **69.93×** | `████████████████████████████` |
-| `word_tokenize` | 1705.17 | **34.39** | **49.58×** | `██████████████████████` |
-| `casual_tokenize` | 735.83 | **30.60** | **24.05×** | `██████████████` |
-| `regexp_tokenize` | 13.64 | **0.59** | **23.06×** | `██████████████` |
-| `sexpr_tokenize` | 4.45 | **0.57** | **7.86×** | `█████████` |
-| `toktok_tokenize` | 358.85 | **56.62** | **6.34×** | `███████` |
-| `detokenize` | 16.20 | **2.80** | **5.78×** | `███████` |
-| `is_cjk` | 0.85 | **0.17** | **4.87×** | `██████` |
-| `nist_international_tokenize` | 7.57 | **1.60** | **4.74×** | `██████` |
-| `mwe_tokenize` | 4.31 | **1.03** | **4.19×** | `█████` |
-| `nist_tokenize` | 6.22 | **1.76** | **3.55×** | `████` |
-| `string_span_tokenize` | 1.29 | **0.37** | **3.47×** | `████` |
-| `blankline_tokenize` | 13.11 | **4.35** | **3.01×** | `███` |
-| `whitespace_tokenize` | 13.92 | **4.95** | **2.81×** | `███` |
-| `regexp_span_tokenize` | 10.85 | **4.67** | **2.32×** | `███` |
-| `sonority_tokenize` | 4.55 | **2.17** | **2.10×** | `██` |
-| `xml_escape` | 1.10 | **0.56** | **1.94×** | `██` |
-| `line_tokenize` | 0.85 | **0.47** | **1.80×** | `██` |
-| `xml_unescape` | 1.05 | **0.69** | **1.52×** | `█` |
-| `spans_to_relative` | 0.55 | **0.37** | **1.51×** | `█` |
-| `align_tokens` | 0.79 | **0.53** | **1.48×** | `█` |
-| `char_tokenize` | 0.42 | **0.39** | 1.07× | `·` |
-| `example.add` | 0.11 | **0.10** | 1.06× | `·` |
-| `tab_tokenize` | 0.38 | **0.37** | 1.03× | `·` |
-| `space_tokenize` | 0.39 | **0.39** | 1.00× | `·` |
-| `wordpunct_tokenize` | 15.23 | 91.02 | 0.17× ⚠️ | `·` |
-| `legality_tokenize` | 1.19 | 44415.58 | 0.00× ⚠️ | `·` |
+| `sent_tokenize` | 725.59 | **10.28** | **70.60×** | `████████████████████████████` |
+| `word_tokenize` | 1798.06 | **35.46** | **50.70×** | `█████████████████████████` |
+| `regexp_tokenize` | 13.71 | **0.61** | **22.59×** | `████████████████████` |
+| `casual_tokenize` | 740.12 | **34.03** | **21.75×** | `████████████████████` |
+| `wordpunct_tokenize` | 15.45 | **0.71** | **21.65×** | `████████████████████` |
+| `sexpr_tokenize` | 4.39 | **0.58** | **7.60×** | `█████████████` |
+| `toktok_tokenize` | 359.84 | **55.64** | **6.47×** | `████████████` |
+| `detokenize` | 16.39 | **2.83** | **5.79×** | `███████████` |
+| `is_cjk` | 0.85 | **0.18** | **4.82×** | `██████████` |
+| `nist_international_tokenize` | 7.60 | **1.69** | **4.50×** | `█████████` |
+| `mwe_tokenize` | 4.31 | **1.06** | **4.07×** | `█████████` |
+| `string_span_tokenize` | 1.32 | **0.38** | **3.52×** | `████████` |
+| `nist_tokenize` | 6.27 | **1.87** | **3.35×** | `███████` |
+| `blankline_tokenize` | 13.01 | **4.39** | **2.97×** | `███████` |
+| `whitespace_tokenize` | 14.13 | **4.95** | **2.85×** | `██████` |
+| `regexp_span_tokenize` | 10.92 | **4.62** | **2.36×** | `█████` |
+| `sonority_tokenize` | 4.69 | **2.20** | **2.13×** | `████` |
+| `xml_escape` | 1.05 | **0.58** | **1.83×** | `███` |
+| `line_tokenize` | 0.83 | **0.48** | **1.73×** | `███` |
+| `legality_tokenize` | 1.19 | **0.70** | **1.70×** | `███` |
+| `spans_to_relative` | 0.55 | **0.36** | **1.51×** | `██` |
+| `align_tokens` | 0.78 | **0.53** | **1.47×** | `██` |
+| `xml_unescape` | 1.00 | **0.70** | **1.43×** | `██` |
+| `example.add` | 0.13 | **0.10** | **1.25×** | `█` |
+| `tab_tokenize` | 0.38 | **0.37** | 1.04× | `█` |
+| `char_tokenize` | 0.42 | **0.41** | 1.03× | `█` |
+| `space_tokenize` | 0.40 | 0.40 | 1.00× | `·` |
 
-> ⚠️ **Two outliers, not regressions in real use:**
-> - `wordpunct_tokenize` — constructs `RegexpTokenizer(r"\w+|[^\w\s]+")` per call; fix is a static `LazyLock<Regex>` (tracked, fast-follow).
-> - `legality_tokenize` — benchmark includes `LegalityPrincipleTokenizer::new(words[:5000])` corpus scan per call (44 ms). Real use caches the tokenizer; tokenization itself is < 1 µs. Batch/cached API `legality_tokenize_with_corpus_py` amortizes this.
-
-**Read it this way:** at 10k calls, `nltk` spends ~17 s on `word_tokenize` where `ported_lib` spends ~0.34 s. The biggest wins are exactly where real pipelines hurt: the two functions most callers actually use (`word_`/`sent_tokenize`) and the regex-heavy social tokenizer (`casual`).
+**Read it this way:** at 10k calls, `nltk` spends ~18.0 s on `word_tokenize` where `ported_lib` spends ~0.35 s. The biggest wins are exactly where real pipelines hurt: the two functions most callers actually use (`word_`/`sent_tokenize`) and the regex-heavy social tokenizer (`casual`).
 
 ### Throughput view (calls/sec, higher is better)
 
 | Workload | `nltk` | `ported_lib` | Throughput gain |
 |---|---:|---:|---|
-| `word_tokenize` (short sentence, ~12 tokens) | ~586 calls/s | ~29,070 calls/s | **49.6×** |
-| `sent_tokenize` (paragraph, ~4 sents) | ~1,393 calls/s | ~97,430 calls/s | **69.9×** |
-| `casual_tokenize` (tweet, ~18 tokens) | ~1,359 calls/s | ~32,680 calls/s | **24.1×** |
-| `toktok_tokenize` (sentence) | ~2,787 calls/s | ~17,660 calls/s | **6.3×** |
-| `detokenize` (sentence) | ~61,700 calls/s | ~357,000 calls/s | **5.8×** |
+| `word_tokenize` (short sentence, ~12 tokens) | ~556 calls/s | ~28198 calls/s | **50.7×** |
+| `sent_tokenize` (paragraph, ~4 sents) | ~1378 calls/s | ~97295 calls/s | **70.6×** |
+| `casual_tokenize` (tweet, ~18 tokens) | ~1351 calls/s | ~29386 calls/s | **21.8×** |
+| `toktok_tokenize` (sentence) | ~2779 calls/s | ~17973 calls/s | **6.5×** |
+| `detokenize` (sentence) | ~61024 calls/s | ~353232 calls/s | **5.8×** |
 
 ### Why faster?
 
-- **Static regexes** — every hot pattern is a `LazyLock<Regex>` compiled once, not per call; gaps/`discard_empty` fast-path avoids regex at all for `\s+`.
+- **Static regexes** — every hot pattern is a `LazyLock<Regex>` compiled once, not per call; gaps/`discard_empty` fast-path avoids regex at all for `\s+`; `wordpunct` now `RE_WORDPUNCT` static.
 - **`&str` + `allow_threads`** — PyO3 boundary takes `&str` (no `String` clone), releases the GIL so the Rust side runs uncontended.
 - **Batch APIs** — `word_tokenize_batch(Vec<String>)` / `sent_tokenize_batch` amortize the ~0.5 µs call overhead when tokenizing corpora.
+- **Legality cache** — `LegalityPrincipleTokenizer` with 5k-word corpus built once in `LEGACY_CACHE` (`RwLock<HashMap>`), subsequent calls skip 44 ms onset scan; `legality_tokenize_cached_py` avoids `Vec<String>` copy over PyO3.
 - **Release profile tuned** — `lto = "fat"`, `codegen-units = 1`, `panic = "abort"`, `strip`, `opt-level = 3`.
 
 ---
@@ -117,21 +114,21 @@ One row per function, one column per input case — every mismatch is a failing 
 | `treebank.py` | `TreebankWordTokenizer` + `Detokenizer` | `src/treebank.rs` | ✅ full — reverse-FST, 24 static regexes, detokenize with contraction `\s` join |
 | `punkt` | `PunktSentenceTokenizer` | `src/punkt/` | ✅ inference — english `abbrev_types` in `LazyLock`, period-context regex static |
 | `util` | `string_span_tokenize`, `CJKChars`, `xml_*`, `align_tokens` | `src/util.rs` | ✅ full |
-| `regexp` | `RegexpTokenizer`, `Whitespace/Blankline/WordPunct` | `src/regexp.rs` | ✅ `gaps`/`discard_empty`, fast-path `\s+` via `split_whitespace` |
+| `regexp` | `RegexpTokenizer`, `Whitespace/Blankline/WordPunct` | `src/regexp.rs` | ✅ `gaps`/`discard_empty`, fast-path `\s+`/`\w+`/`\w+|[^\w\s]+` via `LazyLock`, `WordPunctTokenizer` static |
 | `simple` | `Space/Tab/Char/Line` | `src/simple.rs` | ✅ `blanklines = keep/discard/discard-eof` |
 | `casual` | `TweetTokenizer` | `src/casual.rs` | ✅ URL/emoji/hashtag/@-handles, `reduce_len`/`collapse_hang` |
 | `toktok` | `ToktokTokenizer` | `src/toktok.rs` | ✅ 13 static regexes |
 | `mwe` | `MWETokenizer` | `src/mwe.rs` | ✅ trie |
 | `sexpr` | `SExprTokenizer` | `src/sexpr.rs` | ✅ `parens`/`strict` |
-| `legality_principle` | `LegalitySyllableTokenizer` | `src/deferrable.rs` | ✅ reverse-iter + onset maximization (matches NLTK) |
+| `legality_principle` | `LegalitySyllableTokenizer` | `src/deferrable.rs` + `LEGILITY_CACHE` | ✅ reverse-iter + onset maximization, `legality_tokenize_cached_py` avoids corpus copy |
 | `sonority_sequencing` | `SyllableTokenizer` | `src/deferrable.rs` | ✅ sonority trough detection (`aeiouy / lmnrw / zvsf / bcdgtk…`) |
 | `texttiling` | `TextTilingTokenizer` | `src/deferrable.rs` | ✅ block cosine + depth valleys |
 | `nist` | `NISTTokenizer` | `src/nist.rs` | ✅ western + `international_tokenize` (non-ascii boundary split) |
 | `punkt_trainer` | `PunktTrainer` | `src/punkt_trainer.rs` | ✅ abbrev learning |
 
-**Python surface:** 32 `wrap_pyfunction!` exports — every `nltk.tokenize.*_tokenize` has a same-named `*_py` plus tailored `*_batch` / `*_with_corpus` variants. See `src/lib.rs` for the full list.
+**Python surface:** 33 `wrap_pyfunction!` exports — every `nltk.tokenize.*_tokenize` has a same-named `*_py` plus `*_batch` / `*_with_corpus` / `*_cached` variants. See `src/lib.rs` for the full list.
 
-Known deviations are documented, not hidden — see `PLAN.md §8` / `ANALYSIS.md` (e.g. `span_tokenize` returns `list` not generator, codepoint not byte offsets, corpus-dependent paths have known perf caveats above).
+Known deviations are documented, not hidden — see `PLAN.md §8` / `ANALYSIS.md` (e.g. `span_tokenize` returns `list` not generator, codepoint not byte offsets).
 
 ---
 
@@ -169,4 +166,4 @@ gh run download  # → matrix_report.json/.md  benchmark_report.json/.md  wheels
 
 ---
 
-*Generated from CI #32018596400 · benchmark median-of-7 with warmup · correctness via `scripts/compare_outputs.py` + `scripts/gen_matrix_inputs.py`. Rerun `benchmark.py` / `compare_outputs.py --size full` to refresh.*
+*Generated from CI #32020429615 · benchmark median-of-7 with warmup · correctness via `scripts/compare_outputs.py` + `scripts/gen_matrix_inputs.py`. Rerun `benchmark.py` / `compare_outputs.py --size full` to refresh.*
