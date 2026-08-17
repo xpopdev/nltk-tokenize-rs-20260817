@@ -53,7 +53,6 @@ impl TokenizerI for SExprTokenizer {
                         .collect::<Vec<_>>();
                     result.extend(prefix);
                     pos = i;
-                    let _ = paren;
                 } else if depth == 0 && b == close_b {
                     let prefix = s[pos..i]
                         .split_whitespace()

@@ -96,7 +96,7 @@ fn tokenize_inner(text: &str) -> String {
 }
 
 pub fn toktok_tokenize(text: &str) -> Vec<String> {
-    crate::api::TokenizerI::tokenize(&ToktokTokenizer::default(), text)
+    crate::api::TokenizerI::tokenize(&ToktokTokenizer, text)
 }
 
 #[cfg(test)]
@@ -104,14 +104,14 @@ mod tests {
     use super::*;
     #[test]
     fn basic() {
-        let t = ToktokTokenizer::default();
+        let t = ToktokTokenizer;
         let toks = crate::api::TokenizerI::tokenize(&t, "Hello, world.");
         assert!(toks.contains(&"Hello".to_string()));
         assert!(toks.contains(&",".to_string()));
     }
     #[test]
     fn str_mode() {
-        let t = ToktokTokenizer::default();
+        let t = ToktokTokenizer;
         assert!(!t.tokenize_str("Hello world").is_empty());
     }
 }
