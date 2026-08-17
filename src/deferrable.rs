@@ -130,6 +130,7 @@ impl TokenizerI for LegalityPrincipleTokenizer {
 
 // ── Sonority Sequencing ──
 pub struct SonoritySequencingTokenizer {
+    #[allow(dead_code)]
     hierarchy: Vec<String>,
     phoneme_rank: HashMap<char, usize>,
     vowels: String,
