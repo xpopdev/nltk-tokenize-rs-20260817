@@ -12,6 +12,7 @@ pub mod regex_cache;
 pub mod regexp;
 pub mod sexpr;
 pub mod simple;
+pub mod nist;
 pub mod toktok;
 pub mod treebank;
 pub mod util;
@@ -141,6 +142,104 @@ fn sent_tokenize_batch(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<Strin
     })
 }
 
+#[pyfunction]
+fn detokenize_py(py: Python, tokens: Vec<String>, convert_parentheses: bool) -> PyResult<String> {
+    py.allow_threads(|| Ok(crate::treebank::detokenize(&tokens, convert_parentheses)))
+}
+
+#[pyfunction]
+fn space_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::SpaceTokenizer, text)))
+}
+
+#[pyfunction]
+fn tab_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::TabTokenizer, text)))
+}
+
+#[pyfunction]
+fn char_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::CharTokenizer, text)))
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, blanklines="discard".to_string()))]
+fn line_tokenize_py(py: Python, text: &str, blanklines: String) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::simple::line_tokenize(text, &blanklines)))
+}
+
+#[pyfunction]
+fn blankline_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let mut t = crate::regexp::BlanklineTokenizer::new();
+        Ok(t.tokenize(text))
+    })
+}
+
+#[pyfunction]
+fn wordpunct_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let mut t = crate::regexp::WordPunctTokenizer::new();
+        Ok(t.tokenize(text))
+    })
+}
+
+#[pyfunction]
+fn whitespace_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let mut t = crate::regexp::WhitespaceTokenizer::new();
+        Ok(t.tokenize(text))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, lowercase=false, western_lang=true))]
+fn nist_tokenize_py(py: Python, text: &str, lowercase: bool, western_lang: bool) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::nist::nist_tokenize(text, lowercase, western_lang)))
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, lowercase=false))]
+fn nist_international_tokenize_py(py: Python, text: &str, lowercase: bool) -> PyResult<Vec<String>> {
+    py.allow_threads(|| Ok(crate::nist::nist_international_tokenize(text, lowercase)))
+}
+
+#[pyfunction]
+#[pyo3(signature = (word, vowels="aeiouy".to_string()))]
+fn legality_tokenize_py(py: Python, word: &str, vowels: String) -> PyResult<Vec<String>> {
+    // Without corpus, use default legal onsets (empty -> fallback syllabification)
+    py.allow_threads(|| {
+        let t = crate::deferrable::LegalityPrincipleTokenizer::new(vec![], &vowels);
+        Ok(t.tokenize_word(word))
+    })
+}
+
+#[pyfunction]
+fn sonority_tokenize_py(py: Python, word: &str) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let t = crate::deferrable::SonoritySequencingTokenizer::default();
+        Ok(t.tokenize_word(word))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, w=20, k=10))]
+fn texttiling_tokenize_py(py: Python, text: &str, w: usize, k: usize) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let t = crate::deferrable::TextTilingTokenizer::new(w, k);
+        Ok(crate::api::TokenizerI::tokenize(&t, text))
+    })
+}
+
+#[pyfunction]
+#[pyo3(signature = (text, corpus, vowels="aeiouy".to_string()))]
+fn legality_tokenize_with_corpus_py(py: Python, text: &str, corpus: Vec<String>, vowels: String) -> PyResult<Vec<String>> {
+    py.allow_threads(|| {
+        let t = crate::deferrable::LegalityPrincipleTokenizer::new(corpus, &vowels);
+        Ok(crate::api::TokenizerI::tokenize(&t, text))
+    })
+}
+
 #[pymodule]
 
 fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -162,6 +261,20 @@ fn ported_lib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(sexpr_tokenize_py, m)?)?;
     m.add_function(wrap_pyfunction!(word_tokenize_batch, m)?)?;
     m.add_function(wrap_pyfunction!(sent_tokenize_batch, m)?)?;
+    m.add_function(wrap_pyfunction!(detokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(space_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(tab_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(char_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(line_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(blankline_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(wordpunct_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(whitespace_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(nist_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(nist_international_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(legality_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(sonority_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(texttiling_tokenize_py, m)?)?;
+    m.add_function(wrap_pyfunction!(legality_tokenize_with_corpus_py, m)?)?;
     Ok(())
 }
 
