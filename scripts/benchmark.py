@@ -24,24 +24,27 @@ from gen_matrix_inputs import cases_for
 
 
 def time_calls(fn: Callable, args_list: list[tuple], reps: int) -> float:
-    """Median wall-clock seconds per call, over `reps` repetitions of the
-    given case list (so short-running functions still produce a stable
-    number)."""
-    start = time.perf_counter()
-    for _ in range(reps):
-        for args, kwargs in args_list:
-            try:
-                fn(*args, **kwargs)
-            except Exception:
-                pass  # timing only cares about wall clock, not correctness here
-    elapsed = time.perf_counter() - start
-    total_calls = reps * len(args_list)
-    return elapsed / total_calls if total_calls else float("nan")
+    """Median wall-clock seconds per call, with warmup and median of 7 runs."""
+    # warmup so LazyLock init and import overhead not counted
+    for args, kwargs in args_list[:3]:
+        try: fn(*args, **kwargs)
+        except Exception: pass
+    times=[]
+    for _ in range(7):
+        start = time.perf_counter()
+        for _ in range(reps):
+            for args, kwargs in args_list:
+                try: fn(*args, **kwargs)
+                except Exception: pass
+        elapsed = time.perf_counter() - start
+        total_calls = reps * len(args_list)
+        times.append(elapsed/total_calls if total_calls else float("nan"))
+    return statistics.median(times)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--reps", type=int, default=50)
+    parser.add_argument("--reps", type=int, default=1000)
     args = parser.parse_args()
 
     _try_import_pairs()
@@ -50,10 +53,17 @@ def main() -> int:
         return 1
 
     rows = []
+    # long text for throughput signal (10k chars)
+    long_text = "Hello, world. " * 700
+    long_text2 = "Mr. Smith went to Washington. He saw Dr. Jones. " * 100
     for fn_key, (original, ported) in FUNCTION_PAIRS.items():
         cases = [(c.args, c.kwargs) for c in cases_for(fn_key, size="smoke")]
         if not cases:
             continue
+        # add long case for word/sent-heavy fns
+        if fn_key in ("word_tokenize", "sent_tokenize", "toktok_tokenize", "casual_tokenize"):
+            extra = long_text2 if fn_key=="sent_tokenize" else long_text
+            cases = cases + [((extra,), {})]
         orig_time = time_calls(original, cases, args.reps)
         port_time = time_calls(ported, cases, args.reps)
         speedup = orig_time / port_time if port_time else float("inf")

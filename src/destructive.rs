@@ -55,21 +55,20 @@ fn strip_comments(pat: &str) -> String {
 }
 
 pub fn align_tokens(tokens: &[String], sentence: &str) -> Vec<(usize, usize)> {
-    let mut point = 0usize;
+    let mut point_byte = 0usize;
+    let mut point_char = 0usize;
     let mut out = Vec::new();
     for tok in tokens {
-        let rel = sentence[point..]
-            .find(tok.as_str())
+        let rel = sentence[point_byte..].find(tok.as_str())
             .unwrap_or_else(|| panic!("substring \"{tok}\" not found in \"{sentence}\""));
-        let start = point + rel;
-        // need char-index vs byte-index: Python indices are char offsets
-        // sentence[..start].chars().count() is not needed because sentence is &str and find returns byte offset but Python returns char offset.
-        // For ASCII they coincide; for unicode we must convert byte offsets to char counts.
-        // Do conversion: char offset = sentence[..byte].chars().count()
-        let char_start = sentence[..start].chars().count();
+        let start_byte = point_byte + rel;
+        let skipped_chars = sentence[point_byte..start_byte].chars().count();
+        point_char += skipped_chars;
+        let char_start = point_char;
         let char_end = char_start + tok.chars().count();
         out.push((char_start, char_end));
-        point = start + tok.len();
+        point_byte = start_byte + tok.len();
+        point_char = char_end;
     }
     out
 }
@@ -138,7 +137,7 @@ impl NLTKWordTokenizer {
 
         s = apply(&s, r"--", r" -- ");
 
-        s = format!(" {s} ");
+        s.reserve(2); s.insert(0, ' '); s.push(' ');
 
         s = apply(&s, r"([»”’])", r" $1 ");
         s = apply(&s, r"''", " '' ");

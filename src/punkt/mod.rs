@@ -13,23 +13,27 @@ pub struct PunktParameters {
 
 impl PunktParameters {
     pub fn english_default() -> Self {
-        // Subset of nltk_data punkt english abbrev_types — enough for sentence boundary demo
-        let abbrevs = [
-            "mr", "mrs", "ms", "dr", "prof", "inc", "ltd", "jr", "sr", "vs", "jan", "feb", "mar",
-            "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec", "st", "u", "s", "a",
-            "c", "e", "g", "sec", "fig", "figs", "al", "no", "nos", "vol", "pp", "ex", "eg", "ie",
-        ];
-        Self {
-            abbrev_types: abbrevs.iter().map(|s| s.to_string()).collect(),
-            collocations: HashSet::new(),
-            sent_starters: [
+        Self::english_default_static().clone()
+    }
+    pub fn english_default_static() -> &'static Self {
+        use std::sync::LazyLock;
+        static INST: LazyLock<PunktParameters> = LazyLock::new(|| {
+            let abbrevs = [
+                "mr", "mrs", "ms", "dr", "prof", "inc", "ltd", "jr", "sr", "vs", "jan", "feb", "mar",
+                "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec", "st", "u", "s", "a",
+                "c", "e", "g", "sec", "fig", "figs", "al", "no", "nos", "vol", "pp", "ex", "eg", "ie",
+            ];
+            let starters = [
                 "the", "this", "that", "it", "he", "she", "we", "you", "they", "i",
-            ]
-            .iter()
-            .map(|s| s.to_string())
-            .collect(),
-            ortho_context: HashMap::new(),
-        }
+            ];
+            PunktParameters {
+                abbrev_types: abbrevs.iter().map(|s| s.to_string()).collect(),
+                collocations: HashSet::new(),
+                sent_starters: starters.iter().map(|s| s.to_string()).collect(),
+                ortho_context: HashMap::new(),
+            }
+        });
+        &INST
     }
 }
 
@@ -41,10 +45,9 @@ pub struct PunktLanguageVars {
 
 impl Default for PunktLanguageVars {
     fn default() -> Self {
-        Self {
-            // Simplified period_context: "(?u)\\S*\\.(?:\\S*\\.(?:\\S*\\.)?)?" approximated
-            re_period_context: Regex::new(r"\S*\.(?:\S*\.)*").unwrap(),
-        }
+        use std::sync::LazyLock;
+        static RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\S*\.(?:\S*\.)*").unwrap());
+        Self { re_period_context: RE.clone() }
     }
 }
 
@@ -152,7 +155,7 @@ impl PunktSentenceTokenizer {
 
     pub fn span_tokenize(&self, text: &str) -> Vec<(usize, usize)> {
         let sents = self.tokenize(text, true);
-        crate::destructive::align_tokens(&sents.to_vec(), text)
+        crate::destructive::align_tokens(&sents, text)
     }
 }
 
