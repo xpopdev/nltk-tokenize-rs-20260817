@@ -5,7 +5,7 @@ use regex::Regex;
 use crate::api::TokenizerI;
 
 static RE_BRACKETS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([\[\](){}<>])").unwrap());
-static RE_URL_PUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([:/?#])").unwrap());
+static RE_URL_PUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([/?#])").unwrap());
 static RE_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s*([,])\s*").unwrap());
 static RE_QUOTE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(['\u{2019}`])").unwrap());
 static RE_CC1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" ` ` ").unwrap());
