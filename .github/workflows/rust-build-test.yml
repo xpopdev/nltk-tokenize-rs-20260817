@@ -84,6 +84,14 @@ jobs:
           cat benchmark_report.md
           cat benchmark_report.json
 
+      - name: Verify GPU parity + batch benchmark
+        run: |
+          source .venv/bin/activate
+          python scripts/verify_gpu_parity.py
+          python scripts/benchmark_batch.py --sizes 100,1000,10000
+          cat benchmark_batch_report.md || true
+          cat benchmark_batch_report.json || true
+
       - name: Upload matrix report
         if: always()
         uses: actions/upload-artifact@v4
@@ -94,6 +102,8 @@ jobs:
             matrix_report.json
             benchmark_report.md
             benchmark_report.json
+            benchmark_batch_report.md
+            benchmark_batch_report.json
 
       - name: Upload built wheels
         if: github.event.inputs.mode == 'full'
