@@ -119,6 +119,12 @@ impl BlanklineTokenizer {
         Self(RegexpTokenizer::new(r"\s*\n\s*\n\s*", true, true))
     }
     pub fn tokenize(&mut self, s: &str) -> Vec<String> {
+        // fast path: manual scan for blank lines (2+ newlines with optional whitespace)
+        // avoids regex engine for common case; PyO3 overhead dominates micro so no regex = win
+        if s.len() < 5000 {
+            let toks = blankline_fast(s);
+            if !toks.is_empty() || s.trim().is_empty() { return toks; }
+        }
         self.0.tokenize(s)
     }
 }
@@ -126,6 +132,41 @@ impl Default for BlanklineTokenizer {
     fn default() -> Self {
         Self::new()
     }
+}
+
+fn blankline_fast(s: &str) -> Vec<String> {
+    if s.trim().is_empty() { return vec![]; }
+    let mut out = Vec::new();
+    let mut start = 0usize;
+    let bytes = s.as_bytes();
+    let n = bytes.len();
+    let mut i = 0;
+    while i < n {
+        if bytes[i] == b'\n' {
+            let mut j = i;
+            while j < n && (bytes[j] == b' ' || bytes[j] == b'\t' || bytes[j] == b'\r' || bytes[j] == b'\n') { j += 1; }
+            // check if there was a blank line (at least \n ... \n)
+            let slice = &s[i..j];
+            if slice.matches('\n').count() >= 2 {
+                let tok = s[start..i].trim();
+                if !tok.is_empty() { out.push(tok.to_string()); }
+                // skip the blank separator
+                start = j;
+                // trim leading whitespace of next token
+                while start < n && (bytes[start] == b' ' || bytes[start] == b'\t' || bytes[start] == b'\r' || bytes[start] == b'\n') {
+                    // but don't consume past next content — we already at j, find next non-ws line
+                    break;
+                }
+                i = j;
+                continue;
+            }
+        }
+        i += 1;
+    }
+    let tail = s[start..].trim();
+    if !tail.is_empty() { out.push(tail.to_string()); }
+    // if we produced nothing but s had content, fall back to regex path
+    out
 }
 
 pub struct WordPunctTokenizer;

@@ -111,7 +111,8 @@ impl TokenizerI for LegalityPrincipleTokenizer {
 pub struct SonoritySequencingTokenizer {
     #[allow(dead_code)]
     hierarchy: Vec<String>,
-    phoneme_rank: HashMap<char, usize>,
+    // fast array rank for ascii: -10 = unknown, 0 = vowel tier, 1,2,3...
+    rank_arr: [i8; 256],
     vowels: String,
 }
 
@@ -127,18 +128,22 @@ impl SonoritySequencingTokenizer {
 
     pub fn with_hierarchy(hierarchy: Vec<String>) -> Self {
         let vowels = hierarchy.first().cloned().unwrap_or_default();
-        let mut rank = HashMap::new();
+        let mut rank_arr = [-10i8; 256];
         for (i, level) in hierarchy.iter().enumerate() {
             for c in level.chars() {
-                rank.insert(c, i);
-                rank.insert(c.to_ascii_uppercase(), i);
+                let lo = c as usize;
+                if lo < 256 { rank_arr[lo] = i as i8; }
+                let up = c.to_ascii_uppercase() as usize;
+                if up < 256 { rank_arr[up] = i as i8; }
             }
         }
-        Self { hierarchy, phoneme_rank: rank, vowels }
+        Self { hierarchy, rank_arr, vowels }
     }
 
+    #[inline]
     fn sonority(&self, c: char) -> i32 {
-        self.phoneme_rank.get(&c).copied().map(|r| -(r as i32)).unwrap_or(-10)
+        let idx = c as usize;
+        if idx < 256 { -(self.rank_arr[idx] as i32) } else { -10 }
     }
 
     pub fn tokenize_word(&self, word: &str) -> Vec<String> {

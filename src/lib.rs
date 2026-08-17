@@ -58,9 +58,20 @@ fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, lang
         if preserve_line {
             return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
         }
+        // Fast path: single-sentence micro inputs don't need Punkt
+        // (bridge already handled Gutenberg; this avoids 79µs Punkt for "hello" etc.)
+        // needs_sentence_split checks for .!? followed by space+capital/newline
+        // without it we can single-pass destructive and keep correctness.
+        let needs_split = text.contains(['.', '!', '?']) && needs_sentence_split(text);
+        if !needs_split {
+            return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
+        }
         let sentences = PunktSentenceTokenizer::default().tokenize(text, true);
         if sentences.is_empty() {
             return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
+        }
+        if sentences.len() == 1 {
+            return Ok(NLTKWordTokenizer::tokenize_core(&sentences[0], convert));
         }
         let mut out = Vec::new();
         for sent in &sentences {
@@ -126,6 +137,31 @@ fn try_python_punkt(text: &str, language: &str) -> Option<Vec<String>> {
         }
         None
     })
+}
+
+#[inline]
+fn needs_sentence_split(text: &str) -> bool {
+    let b = text.as_bytes();
+    let n = b.len();
+    if n < 3 { return false; }
+    // look for .!? followed by whitespace + capital or newline (likely sentence boundary)
+    // cheap memchr-like scan — no regex
+    for i in 0..n {
+        if b[i] == b'.' || b[i] == b'!' || b[i] == b'?' {
+            let mut j = i + 1;
+            // consume closing quotes/parens
+            while j < n && matches!(b[j], b'"' | b'\'' | b')' | b']' | b'}' | 0xC2) { j += 1; }
+            if j >= n { continue; }
+            if b[j] == b' ' || b[j] == b'\n' || b[j] == b'\t' || b[j] == b'\r' {
+                let mut k = j + 1;
+                while k < n && (b[k] == b' ' || b[k] == b'\n' || b[k] == b'\t') { k += 1; }
+                if k < n && (b[k] as char).is_uppercase() { return true; }
+                if k >= n { return true; }
+                if j + 1 < n && (b[j + 1] as char).is_uppercase() { return true; }
+            }
+        }
+    }
+    false
 }
 
 #[pyfunction]
