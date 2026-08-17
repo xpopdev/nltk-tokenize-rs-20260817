@@ -4,6 +4,26 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
     if sep.is_empty() {
         panic!("Token delimiter must not be empty");
     }
+    if s.is_ascii() && sep.is_ascii() {
+        let mut out = Vec::new();
+        let mut left = 0usize;
+        loop {
+            match s[left..].find(sep) {
+                Some(rel) => {
+                    let right = left + rel;
+                    if right != left { out.push((left, right)); }
+                    left = right + sep.len();
+                    if left > s.len() { break; }
+                    if left == s.len() { break; }
+                }
+                None => {
+                    if left != s.len() { out.push((left, s.len())); }
+                    break;
+                }
+            }
+        }
+        return out;
+    }
     let mut out = Vec::new();
     let mut byte_to_char = vec![0usize; s.len() + 1];
     let mut ci = 0;
@@ -37,6 +57,19 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
 
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     let re = cached_regex(pattern);
+    if s.is_ascii() {
+        let mut out = Vec::new();
+        let mut left = 0usize;
+        for m in re.find_iter(s) {
+            let (right, next) = (m.start(), m.end());
+            if right != left { out.push((left, right)); }
+            left = next;
+        }
+        out.push((left, s.len()));
+        let out_len = out.len();
+        out.retain(|(a,b)| !(a==b && out_len>1));
+        return out;
+    }
     let mut byte_to_char = vec![0usize; s.len() + 1];
     let mut ci = 0;
     for (bi, _) in s.char_indices() { byte_to_char[bi] = ci; ci += 1; }

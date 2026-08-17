@@ -78,10 +78,32 @@ impl WhitespaceTokenizer {
     pub fn new() -> Self {
         Self(RegexpTokenizer::new(r"\s+", true, true))
     }
+    #[inline]
     pub fn tokenize(&mut self, s: &str) -> Vec<String> {
+        // fast path: avoid regex engine for common whitespace case
+        if self.0.pattern == r"\s+" && self.0.gaps && self.0.discard_empty {
+            return s.split_whitespace().map(|x| x.to_string()).collect();
+        }
         self.0.tokenize(s)
     }
     pub fn span_tokenize(&mut self, s: &str) -> Vec<(usize, usize)> {
+        if self.0.pattern == r"\s+" && self.0.gaps {
+            // char-based span without byte_to_char alloc: use char indices
+            let mut out = Vec::new();
+            let mut char_idx = 0usize;
+            let mut in_tok = false;
+            let mut tok_start = 0usize;
+            for c in s.chars() {
+                if c.is_whitespace() {
+                    if in_tok { out.push((tok_start, char_idx)); in_tok = false; }
+                } else {
+                    if !in_tok { tok_start = char_idx; in_tok = true; }
+                }
+                char_idx += 1;
+            }
+            if in_tok { out.push((tok_start, char_idx)); }
+            return out;
+        }
         self.0.span_tokenize(s)
     }
 }
