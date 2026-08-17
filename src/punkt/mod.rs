@@ -3,10 +3,19 @@ use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 const ABBREVS_SORTED: &[&str] = &[
-    "a", "al", "apr", "aug", "c", "dec", "dr", "e", "eg", "ex", "feb", "fig", "figs",
-    "g", "ie", "inc", "jan", "jr", "jul", "jun", "ltd", "mar", "mr", "mrs", "ms", "no",
-    "nos", "nov", "oct", "pp", "prof", "s", "sec", "sep", "sept", "sr", "st", "u", "vol",
-    "vs",
+    ". . ", "a.a", "a.c", "a.d", "a.g", "a.h", "a.m", "a.m.e", "a.s", "a.t", "adm", "ala",
+    "ariz", "aug", "ave", "b.f", "b.v", "bros", "c", "c.i.t", "c.o.m.b", "c.v", "calif",
+    "chg", "cie", "co", "col", "colo", "conn", "corp", "cos", "ct", "d", "d.c", "d.h",
+    "d.w", "dec", "dr", "e", "e.f", "e.h", "e.l", "e.m", "f", "f.g", "f.j", "feb", "fla",
+    "fri", "ft", "g", "g.d", "g.f", "g.k", "ga", "gen", "h", "h.c", "h.f", "h.m", "i.m.s",
+    "ill", "inc", "j.b", "j.c", "j.j", "j.k", "j.p", "j.r", "jan", "jr", "k", "kan", "ky",
+    "l", "l.a", "l.f", "l.p", "lt", "ltd", "m", "m.b.a", "m.d.c", "m.j", "maj", "messrs",
+    "mg", "mich", "minn", "mr", "mrs", "ms", "n", "n.c", "n.d", "n.h", "n.j", "n.m", "n.v",
+    "n.y", "nev", "nov", "oct", "ok", "okla", "ore", "p", "p.a.m", "p.m", "pa", "ph.d",
+    "prof", "r", "r.a", "r.h", "r.i", "r.j", "r.k", "r.t", "rep", "reps", "s", "s.a",
+    "s.a.y", "s.c", "s.g", "s.p.a", "s.s", "sen", "sep", "sept", "sr", "st", "sw", "t",
+    "t.j", "tenn", "tues", "u.k", "u.n", "u.s", "u.s.a", "u.s.s.r", "v", "va", "vs", "vt",
+    "w", "w.c", "w.r", "w.va", "w.w", "wash", "wed", "wis", "yr",
 ];
 
 #[inline]
@@ -43,7 +52,11 @@ impl PunktParameters {
                 "c", "e", "g", "sec", "fig", "figs", "al", "no", "nos", "vol", "pp", "ex", "eg", "ie",
             ];
             let starters = [
-                "the", "this", "that", "it", "he", "she", "we", "you", "they", "i",
+                "according", "although", "among", "both", "but", "despite", "even", "he",
+                "however", "i", "if", "in", "indeed", "instead", "it", "many", "meanwhile",
+                "moreover", "most", "nevertheless", "nonetheless", "nor", "sales",
+                "separately", "similarly", "since", "so", "some", "the", "there", "these",
+                "they", "this", "though", "thus", "under", "when", "while", "yet",
             ];
             PunktParameters {
                 abbrev_types: abbrevs.iter().map(|s| s.to_string()).collect(),
@@ -132,7 +145,9 @@ impl PunktSentenceTokenizer {
                     next += 1;
                 }
                 let next_is_sent_start = next >= n || (bytes[next] as char).is_uppercase();
+                let follows_double_dash = next + 1 < n && bytes[next] == b'-' && bytes[next+1] == b'-';
                 let is_boundary = !is_abbrev
+                    && !follows_double_dash
                     && (next_is_sent_start
                         || next >= n
                         || bytes[i] as char == '!'

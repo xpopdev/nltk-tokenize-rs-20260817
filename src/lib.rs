@@ -37,10 +37,24 @@ fn add(a: i64, b: i64) -> PyResult<i64> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (text, convert_parentheses=None))]
-fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>) -> PyResult<Vec<String>> {
+#[pyo3(signature = (text, convert_parentheses=None, *, language="english".to_string(), preserve_line=false))]
+fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, language: String, preserve_line: bool) -> PyResult<Vec<String>> {
     let convert = convert_parentheses.unwrap_or(false);
-    py.allow_threads(|| Ok(NLTKWordTokenizer::tokenize_core(text, convert)))
+    let _ = language;
+    py.allow_threads(|| {
+        if preserve_line {
+            return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
+        }
+        let sentences = PunktSentenceTokenizer::default().tokenize(text, true);
+        if sentences.is_empty() {
+            return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
+        }
+        let mut out = Vec::new();
+        for sent in &sentences {
+            out.extend(NLTKWordTokenizer::tokenize_core(sent, convert));
+        }
+        Ok(out)
+    })
 }
 
 #[pyfunction]
@@ -138,7 +152,13 @@ fn sexpr_tokenize_py(py: Python, text: &str, parens: String, strict: bool) -> Py
 
 #[pyfunction]
 fn word_tokenize_batch(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
-    py.allow_threads(|| Ok(texts.iter().map(|t| NLTKWordTokenizer::tokenize_core(t, false)).collect()))
+    py.allow_threads(|| Ok(texts.iter().map(|t| {
+        let sents = PunktSentenceTokenizer::default().tokenize(t, true);
+        if sents.is_empty() { return NLTKWordTokenizer::tokenize_core(t, false); }
+        let mut out = Vec::new();
+        for s in &sents { out.extend(NLTKWordTokenizer::tokenize_core(s, false)); }
+        out
+    }).collect()))
 }
 #[pyfunction]
 fn sent_tokenize_batch(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<String>>> {
