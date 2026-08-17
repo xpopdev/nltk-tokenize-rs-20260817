@@ -42,7 +42,7 @@ impl ToktokTokenizer {
     pub fn new() -> Self {
         Self
     }
-    pub fn tokenize(&self, text: &str, return_str: bool) -> Vec<String> {
+    pub fn tokenize_with_flag(&self, text: &str, return_str: bool) -> Vec<String> {
         let s = tokenize_inner(text);
         if return_str {
             vec![s]
@@ -69,7 +69,7 @@ impl TokenizerI for ToktokTokenizer {
             .collect()
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
-        let toks = self.tokenize(s);
+        let toks = TokenizerI::tokenize(self, s);
         crate::util::align_tokens(&toks, s)
     }
 }
@@ -96,7 +96,7 @@ fn tokenize_inner(text: &str) -> String {
 }
 
 pub fn toktok_tokenize(text: &str) -> Vec<String> {
-    ToktokTokenizer::default().tokenize(text, false)
+    crate::api::TokenizerI::tokenize(&ToktokTokenizer::default(), text)
 }
 
 #[cfg(test)]
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn basic() {
         let t = ToktokTokenizer::default();
-        let toks = t.tokenize("Hello, world.", false);
+        let toks = crate::api::TokenizerI::tokenize(&t, "Hello, world.");
         assert!(toks.contains(&"Hello".to_string()));
         assert!(toks.contains(&",".to_string()));
     }

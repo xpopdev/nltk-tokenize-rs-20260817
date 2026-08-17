@@ -103,13 +103,13 @@ impl TokenizerI for SExprTokenizer {
     }
 
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
-        let toks = self.tokenize(s);
+        let toks = TokenizerI::tokenize(self, s);
         crate::util::align_tokens(&toks, s)
     }
 }
 
 pub fn sexpr_tokenize(text: &str) -> Vec<String> {
-    SExprTokenizer::default().tokenize(text)
+    TokenizerI::tokenize(&SExprTokenizer::default(), text)
 }
 
 #[cfg(test)]
@@ -119,19 +119,19 @@ mod tests {
     fn basic() {
         let t = SExprTokenizer::default();
         assert_eq!(
-            t.tokenize("(a b (c d)) e f (g)"),
+            TokenizerI::tokenize(&t, "(a b (c d)) e f (g)"),
             vec!["(a b (c d))", "e", "f", "(g)"]
         );
     }
     #[test]
     fn strict_close() {
         let t = SExprTokenizer::new("()", false);
-        let out = t.tokenize("c) d");
+        let out = TokenizerI::tokenize(&t, "c) d");
         assert!(out.contains(&")".to_string()));
     }
     #[test]
     fn custom_parens() {
         let t = SExprTokenizer::new("{}", true);
-        assert_eq!(t.tokenize("{a b} c"), vec!["{a b}", "c"]);
+        assert_eq!(TokenizerI::tokenize(&t, "{a b} c"), vec!["{a b}", "c"]);
     }
 }

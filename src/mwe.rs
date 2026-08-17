@@ -33,7 +33,7 @@ impl MWETokenizer {
         node.is_end = true;
     }
 
-    pub fn tokenize(&self, tokens: &[String]) -> Vec<String> {
+    pub fn tokenize_words(&self, tokens: &[String]) -> Vec<String> {
         let mut out = Vec::new();
         let mut i = 0;
         while i < tokens.len() {
@@ -66,14 +66,14 @@ impl MWETokenizer {
 
 impl TokenizerI for MWETokenizer {
     fn tokenize(&self, s: &str) -> Vec<String> {
-        self.tokenize(
+        self.tokenize_words(
             &s.split_whitespace()
                 .map(|x| x.to_string())
                 .collect::<Vec<_>>(),
         )
     }
     fn span_tokenize(&self, s: &str) -> Vec<(usize, usize)> {
-        let toks = self.tokenize(s);
+        let toks = TokenizerI::tokenize(self, s);
         crate::util::align_tokens(&toks, s)
     }
 }
@@ -94,13 +94,13 @@ mod tests {
             .split_whitespace()
             .map(|x| x.to_string())
             .collect();
-        let out = tok.tokenize(&inp);
+        let out = tok.tokenize_words(&inp);
         assert_eq!(out, vec!["a_little", "or", "a_lot"]);
     }
     #[test]
     fn no_match() {
         let tok = MWETokenizer::new(vec![], "_");
         let inp = vec!["hello".to_string()];
-        assert_eq!(tok.tokenize(&inp), inp);
+        assert_eq!(tok.tokenize_words(&inp), inp);
     }
 }

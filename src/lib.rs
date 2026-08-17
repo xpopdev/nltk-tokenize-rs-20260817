@@ -13,6 +13,7 @@ pub mod toktok;
 pub mod treebank;
 pub mod util;
 
+use crate::api::TokenizerI;
 use destructive::NLTKWordTokenizer;
 use punkt::PunktSentenceTokenizer;
 
@@ -137,14 +138,14 @@ fn mwe_tokenize_py(
     separator: String,
 ) -> PyResult<Vec<String>> {
     let tok = crate::mwe::MWETokenizer::new(mwes, &separator);
-    Ok(tok.tokenize(&tokens))
+    Ok(tok.tokenize_words(&tokens))
 }
 
 #[pyfunction]
 #[pyo3(signature = (text, parens="()".to_string(), strict=true))]
 fn sexpr_tokenize_py(text: String, parens: String, strict: bool) -> PyResult<Vec<String>> {
     let tok = crate::sexpr::SExprTokenizer::new(&parens, strict);
-    Ok(tok.tokenize(&text))
+    Ok(TokenizerI::tokenize(&tok, &text))
 }
 
 #[pymodule]
