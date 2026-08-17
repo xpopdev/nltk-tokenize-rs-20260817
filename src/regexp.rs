@@ -1,22 +1,18 @@
-use crate::util::regexp_span_tokenize as util_span;
 use regex::Regex;
 
 pub struct RegexpTokenizer {
     pattern: String,
     gaps: bool,
     discard_empty: bool,
-    flags: String,
     regex: Option<Regex>,
 }
 
 impl RegexpTokenizer {
     pub fn new(pattern: &str, gaps: bool, discard_empty: bool) -> Self {
-        let flags = "(?m)".to_string();
         Self {
             pattern: pattern.to_string(),
             gaps,
             discard_empty,
-            flags,
             regex: None,
         }
     }
@@ -52,19 +48,17 @@ impl RegexpTokenizer {
             let mut left = 0usize;
             for m in re.find_iter(text) {
                 let (right, next) = (m.start(), m.end());
-                if right != left && !(self.discard_empty && right == left) {
+                if right != left {
                     out.push((left, right));
                 }
                 left = next;
             }
-            if left < text.len() || (left == text.len() && !self.discard_empty) {
-                if left != text.len() || !self.discard_empty {
-                    if left < text.len() {
-                        out.push((left, text.len()));
-                    }
-                }
+            if left < text.len() {
+                out.push((left, text.len()));
+            } else if !self.discard_empty && left == text.len() {
+                let spans = crate::util::regexp_span_tokenize(text, re.as_str());
+                let _ = spans;
             }
-            let _ = util_span(text, re.as_str());
             out
         } else {
             re.find_iter(text).map(|m| (m.start(), m.end())).collect()
