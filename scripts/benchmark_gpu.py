@@ -93,7 +93,7 @@ def main():
         TWEETS,
         lambda t: ported_lib.casual_tokenize_py(t),
         lambda ts: [ported_lib.casual_tokenize_py(t) for t in ts],  # no plain batch, use loop
-        lambda ts: ported_lib.casual_tokenize_batch_gpu(ts),
+        lambda ts: ported_lib.casual_tokenize_batch_gpu(ts, True, False, False, True),
         sizes)
 
     print("\n=== regexp batch (\\s+) ===")

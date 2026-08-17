@@ -443,11 +443,13 @@ fn sent_tokenize_batch_gpu(py: Python, texts: Vec<String>) -> PyResult<Vec<Vec<S
 }
 
 #[pyfunction]
+#[pyo3(signature = (texts, pattern=r"\s+".to_string(), gaps=true, discard_empty=true))]
 fn regexp_tokenize_batch_gpu(py: Python, texts: Vec<String>, pattern: String, gaps: bool, discard_empty: bool) -> PyResult<Vec<Vec<String>>> {
     py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::regexp::regexp_tokenize(&t, &pattern, gaps, discard_empty))))
 }
 
 #[pyfunction]
+#[pyo3(signature = (texts, preserve_case=true, reduce_len=false, strip_handles=false, match_phone_numbers=true))]
 fn casual_tokenize_batch_gpu(py: Python, texts: Vec<String>, preserve_case: bool, reduce_len: bool, strip_handles: bool, match_phone_numbers: bool) -> PyResult<Vec<Vec<String>>> {
     py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::casual::casual_tokenize(&t, preserve_case, reduce_len, strip_handles, match_phone_numbers))))
 }
@@ -473,6 +475,7 @@ fn detokenize_batch_gpu(py: Python, texts: Vec<Vec<String>>, convert_parentheses
 }
 
 #[pyfunction]
+#[pyo3(signature = (texts, lowercase=false, western_lang=true))]
 fn nist_tokenize_batch_gpu(py: Python, texts: Vec<String>, lowercase: bool, western_lang: bool) -> PyResult<Vec<Vec<String>>> {
     py.allow_threads(|| Ok(crate::gpu::batch::par_map(texts, |t| crate::nist::nist_tokenize(&t, lowercase, western_lang))))
 }
