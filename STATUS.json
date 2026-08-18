@@ -11,7 +11,7 @@
     },
     {
       "id": "M2",
-      "title": "Punkt inference \u2014 sent_tokenize / PunktSentenceTokenizer vs pickled params",
+      "title": "Punkt inference — sent_tokenize / PunktSentenceTokenizer vs pickled params",
       "status": "done"
     },
     {
@@ -41,10 +41,10 @@
     }
   ],
   "last_ci_run": {
-    "id": 32003218075,
-    "branch": "port/nltk-tokenize-2026-08-17",
+    "id": 32095676231,
+    "branch": "main",
     "mode": "full",
     "status": "success",
-    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32003218075"
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32095676231"
   }
 }

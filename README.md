@@ -64,7 +64,7 @@ except ImportError:
 |---|---|---|---|
 | `destructive.py` | `NLTKWordTokenizer` | `src/destructive.rs` | Cascade `STARTING_QUOTES`… — `(?#X)` stripped, `(?=--)` rewritten, backrefs `→ $1` |
 | `treebank.py` | `TreebankWordTokenizer` (detok) | `src/treebank.rs` | |
-| `punkt` | `PunktSentenceTokenizer`/`sent_tokenize` | `src/punkt/` | Inference only — english `abbrev_types` embedded; training stays Python fallback (M7) |
+| `punkt` | `PunktSentenceTokenizer`/`sent_tokenize` | `src/punkt/` | Inference with real NLTK 3.9.2 params (156 abbrevs, collocs, ortho) via `punkt-fancy` (fancy-regex); pure Rust 420/420. Training (`PunktTrainer`) is Python fallback (no-op). |
 | `util` | `string_span_tokenize` etc | `src/util.rs` | Includes `CJKChars`, `xml_escape` |
 | `regexp` | `RegexpTokenizer` | `src/regexp.rs` | `gaps`/`discard_empty` |
 | `simple` | `Space/Tab/Char/Line` | `src/simple.rs` | |
@@ -72,10 +72,10 @@ except ImportError:
 | `toktok` | `ToktokTokenizer` | `src/toktok.rs` | |
 | `mwe` | `MWETokenizer` | `src/mwe.rs` | Trie |
 | `sexpr` | `SExprTokenizer` | `src/sexpr.rs` | |
-| `legality/sonority/texttiling` | deferrable | `src/deferrable.rs` | Scaffolds |
-| `punkt_trainer` | `PunktTrainer` | `src/punkt_trainer.rs` | High-risk fallback |
+| `legality/sonority` | deferrable | `src/deferrable.rs` | Legality/Sonority full; TextTiling is simplified cosine approximation (no TF-IDF) — see PLAN §8 |
+| `punkt_trainer` | `PunktTrainer` | `src/punkt_trainer.rs` | **Training is Python fallback** — Rust `train()` is no-op; use NLTK Python trainer |
 
-Known deviations — see `PLAN.md §8` (`span_tokenize` returns `list` not generator; codepoint not byte offsets; NIST/Stanford/REPP remain stubs).
+Known deviations — see `PLAN.md §8` (span returns `list` not generator; codepoint offsets; TextTiling is approximation; Punkt training not ported; NIST/Stanford/REPP remain stubs).
 
 ## Testing — matrix equivalence
 
