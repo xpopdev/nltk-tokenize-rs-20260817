@@ -411,32 +411,19 @@ impl PunktSentenceTokenizer {
     fn realign_boundaries(&self, text: &str, mut slices: Vec<(usize, usize)>) -> Vec<(usize, usize)> {
         if slices.len() <= 1 { return slices; }
         let mut out = Vec::new();
-        let mut realign: usize = 0;
         let mut i = 0;
         while i < slices.len() {
-            let (mut s, mut e) = slices[i];
-            s += realign;
+            let (s, mut e) = slices[i];
             if i+1 < slices.len() {
                 let (ns, _) = slices[i+1];
                 let after = &text[ns..];
                 if let Some(m) = self.lang_vars.re_boundary_realignment.find(after) {
                     if m.start()==0 {
                         let m_end = m.end();
-                        // also handle (?=--) case manually: if after[m_end..].starts_with("--"), include punct but not --
                         let extra = m.as_str().trim_end().len();
-                        // If original had -- detection, ensure we don't consume --
-                        if after[extra..].starts_with("--") {
-                            // don't include --
-                        }
                         e = ns + extra;
-                        realign = m_end;
-                        // next slice start should be ns+m_end
                         slices[i+1].0 = ns + m_end;
-                    } else {
-                        realign = 0;
                     }
-                } else {
-                    realign = 0;
                 }
                 out.push((s, e));
             } else {
