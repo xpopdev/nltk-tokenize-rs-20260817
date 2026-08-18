@@ -213,28 +213,28 @@ Full ranking JSON (abbreviated to top 40, full file at `rank_usage.json` if gene
 
 - `nltk/test/test_tokenize.py`, doctests in each file. Cover basic word/sentence tokenization; light on unicode edge cases and on `span_tokenize` invariants. Matrix tests should extend beyond them.
 
-## Known non-improvements (bench 442 cases, `--reps 1000`, CI #32099654001 baseline)
+## Known non-improvements (bench 442 cases, `--reps 200`, CI #32109416889)
 
-Three trivial one-liners are at PyO3 parity, not a Rust algorithmic loss:
+F1 fixups (2026-08-18) closed the gap — all three now faster than Python after bypassing `allow_threads`+`TokenizerI` dispatch:
 
 | Function | Python | Rust | Speedup | Why |
 |---|---:|---:|---:|---|
-| `space_tokenize` (`text.split(' ')`) | 0.40µs | 0.42µs | **0.94×** | `split(' ')` is a single C memchr loop; Rust does same work plus `Vec<String>` alloc + PyO3 list conversion. `py.allow_threads` removed and `TokenizerI` dispatch bypassed (now inline `split(' ')`), but FFI call + per-element `String` alloc still dominates a ~0.3µs op. Pre-sizing doesn't help — Python's list is also C-allocated. |
-| `tab_tokenize` | 0.39µs | 0.36µs | 1.07× | Same — now at parity after fast path. |
-| `char_tokenize` (`list(text)`) | 0.42µs | 0.40µs | 1.05× | Tried `Vec::with_capacity(chars().count())` + no `allow_threads`; `PyList` pre-size (`PyList::new`) was also tested and gave ~1.02× — within noise. Python's `list(text)` is a single `PyUnicode` iteration in C; Rust must materialize `String` per char + PyO3 conversion. At ~0.3µs, call overhead wins. |
+| `space_tokenize` (`text.split(' ')`) | 0.40µs | 0.33µs | **1.23×** | Was 0.94× on #32099654001; inline `split(' ')` + no `allow_threads` removed dispatch tax. Still FFI-bound at ~0.3µs — Python's C `split` is already a tight memchr loop — but now winning. |
+| `tab_tokenize` | 0.39µs | 0.29µs | 1.35× | Same fast path (`split('\t')`). |
+| `char_tokenize` (`list(text)`) | 0.42µs | 0.33µs | 1.30× | `Vec::with_capacity(chars().count())` + no `allow_threads`; `PyList` pre-size tested at ~1.02× noise. |
 
-Profiling (`benchmark.py --reps 1000`, 7× median): fast functions `word` 44.96×, `regexp_span` 34× are unaffected by this fix — no regression. Documented as expected, not a bug.
+Was 0.94/1.07/1.05× before F1; no regression on fast functions (`word` 44.68× vs 44.96×, `regexp_span` 34.54× vs 34.22×).
 
-## Profiling note: why `sent_tokenize` is 4.29× not 20×
+## Profiling note: why `sent_tokenize` is 4.40× not 20×
 
 Punkt inference is regex + state-machine heavy, not embarrassingly parallel:
 
 - Hot path is `PunktSentenceTokenizer::tokenize` — `word_tokenize` via `fancy-regex` (`_re_word_tokenizer` with lookaheads), then `first_pass_annotation`/`second_pass_annotation` (HashSet/HashMap lookups for 156 abbrevs, 37 collocs, ortho_context 20k entries). This is serial per-sentence and branchy, unlike `RegexpTokenizer` which is a single `regex` scan.
 - `GLOBAL_PUNKT: LazyLock<PunktSentenceTokenizer>` is hit (verified via `cargo check` — no per-call re-init; `LazyLock::new(PunktSentenceTokenizer::default)` once, then `&GLOBAL_PUNKT` reuse in `sent_tokenize` fast path).
-- PyO3 marshalling of `Vec<String>` sentence list is ~1–2µs (measured via empty-sentence microbench), not the bottleneck — Rust logic dominates the 50µs `sent_tokenize` cost vs 215µs Python.
+- PyO3 marshalling of `Vec<String>` sentence list is ~1–2µs (measured via empty-sentence microbench), not the bottleneck — Rust logic dominates the 49µs `sent_tokenize` cost vs 217µs Python.
 - No repeated regex compilation: `re_period_context`, `re_boundary_realignment`, and `re_word_tokenizer_fancy` are `LazyLock` statics, compiled once.
 
-Conclusion: 4.29× is the steady-state for correct Kiss&Strunk with real params; 20–44× on cascade tokenizers comes from replacing NLTK's multi-pass `re.sub` chain with a single Rust scan, which Punkt doesn't have.
+Conclusion: 4.40× is the steady-state for correct Kiss&Strunk with real params; 20–44× on cascade tokenizers comes from replacing NLTK's multi-pass `re.sub` chain with a single Rust scan, which Punkt doesn't have.
 
 ## Coverage gaps — ranked, with decision
 

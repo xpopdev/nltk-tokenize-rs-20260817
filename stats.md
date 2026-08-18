@@ -2,9 +2,9 @@
 
 > **Rust-backed drop-in for NLTK 3.9.2 tokenizers.** Same Python API, same outputs.
 
-**Correctness:** 442/442 full matrix (29 sent_tokenize incl. 22 hard Punkt cases), 207/207 smoke, 41/41 Rust unit. Punkt inference uses real NLTK 3.9.2 params (156 abbrevs, 37 collocations, 39 sent starters, 20k ortho) via `punkt-fancy` — pure Rust path now 442/442 without bridge.
+**Correctness:** 442/442 full matrix (29 sent_tokenize incl. 22 hard Punkt cases), 207/207 smoke, 41/41 Rust unit. Punkt inference uses real NLTK 3.9.2 params (156 abbrevs, 37 collocations, 39 sent starters, 20k ortho) via `punkt-fancy` — pure Rust path 442/442. F1 fast-path fixes space/tab/char regressions (now 1.2–1.3×).
 
-**Source:** CI #32099654001 (main @ bcb4991, full mode, ubuntu-latest, Python 3.12, stable Rust).
+**Source:** CI #32109416889 (port/nltk-tokenize-fixups-2026-08-18 @ 897ba8e, full mode, ubuntu-latest, Python 3.12, stable Rust).
 
 ---
 
@@ -30,34 +30,34 @@ gen_matrix_inputs.py (seed 20260816)
 
 | Function | `nltk` (µs) | `ported_lib` (µs) | Speedup |
 |---|---:|---:|---:|
-| `word_tokenize` | 1680.50 | **37.38** | **44.96×** |
-| `blankline_tokenize` | 13.24 | **0.39** | **34.16×** |
-| `whitespace_tokenize` | 14.15 | **0.40** | **35.11×** |
-| `regexp_span_tokenize` | 10.78 | **0.32** | **34.22×** |
-| `casual_tokenize` | 741.30 | **30.23** | **24.53×** |
-| `regexp_tokenize` | 13.68 | **0.62** | **22.04×** |
-| `wordpunct_tokenize` | 15.36 | **0.74** | **20.83×** |
-| `detokenize` | 16.39 | **0.77** | **21.36×** |
-| `sonority_tokenize` | 4.69 | **0.60** | **7.83×** |
-| `sexpr_tokenize` | 4.40 | **0.59** | **7.47×** |
-| `toktok_tokenize` | 362.03 | **53.46** | **6.77×** |
-| `nist_international_tokenize` | 7.60 | **1.36** | **5.60×** |
-| `is_cjk` | 0.85 | **0.19** | **4.57×** |
-| `xml_unescape` | 1.01 | **0.24** | **4.28×** |
-| `mwe_tokenize` | 4.29 | **1.05** | **4.09×** |
-| `nist_tokenize` | 6.20 | **1.52** | **4.09×** |
-| `xml_escape` | 1.05 | **0.28** | **3.79×** |
-| `string_span_tokenize` | 1.31 | **0.36** | **3.66×** |
-| `sent_tokenize` | 215.21 | **50.22** | **4.29×** |
-| `align_tokens` | 0.79 | **0.51** | **1.56×** |
-| `spans_to_relative` | 0.56 | **0.36** | **1.55×** |
-| `line_tokenize` | 0.83 | **0.47** | **1.76×** |
-| `legality_tokenize` | 1.21 | **0.67** | **1.79×** |
-| `char_tokenize` | 0.42 | 0.40 | 1.05× |
-| `tab_tokenize` | 0.39 | 0.36 | 1.07× |
-| `space_tokenize` | 0.40 | 0.42 | 0.94× |
+| `word_tokenize` | 1682.35 | **37.65** | **44.68×** |
+| `blankline_tokenize` | 13.41 | **0.39** | **34.59×** |
+| `whitespace_tokenize` | 14.35 | **0.41** | **34.71×** |
+| `regexp_span_tokenize` | 11.12 | **0.32** | **34.54×** |
+| `casual_tokenize` | 736.26 | **30.52** | **24.13×** |
+| `regexp_tokenize` | 13.87 | **0.60** | **23.08×** |
+| `wordpunct_tokenize` | 15.58 | **0.71** | **22.07×** |
+| `detokenize` | 15.90 | **0.77** | **20.71×** |
+| `sonority_tokenize` | 4.62 | **0.59** | **7.81×** |
+| `sexpr_tokenize` | 4.24 | **0.58** | **7.31×** |
+| `toktok_tokenize` | 358.08 | **55.43** | **6.46×** |
+| `nist_international_tokenize` | 7.58 | **1.38** | **5.51×** |
+| `is_cjk` | 0.85 | **0.18** | **4.63×** |
+| `xml_unescape` | 0.99 | **0.24** | **4.24×** |
+| `mwe_tokenize` | 4.32 | **1.07** | **4.03×** |
+| `nist_tokenize` | 6.15 | **1.52** | **4.03×** |
+| `xml_escape` | 1.05 | **0.28** | **3.81×** |
+| `string_span_tokenize` | 1.30 | **0.36** | **3.63×** |
+| `sent_tokenize` | 216.62 | **49.19** | **4.40×** |
+| `align_tokens` | 0.78 | **0.53** | **1.47×** |
+| `spans_to_relative` | 0.55 | **0.37** | **1.49×** |
+| `line_tokenize` | 0.83 | **0.47** | **1.79×** |
+| `legality_tokenize` | 1.17 | **0.66** | **1.76×** |
+| `char_tokenize` | 0.42 | **0.33** | **1.30×** |
+| `tab_tokenize` | 0.39 | **0.29** | **1.35×** |
+| `space_tokenize` | 0.40 | **0.33** | **1.23×** |
 
-> Real Punkt is slightly **faster** than the prior stub (44.96× vs 40.79× word, 4.29× vs 3.74× sent, 34× vs 38× blankline) despite extra collocation/ortho lookups and fancy-regex — the realign fix and reduced PyO3 overhead dominate. Not hidden as a regression; reported as measured on CI.
+> F1 fast-path (CI #32109416889): space/tab/char now 1.23/1.35/1.30× — previously 0.94/1.07/1.05× on #32099654001. No regression on fast functions (word 44.68× vs 44.96×, sent 4.40× vs 4.29×, blankline 34.59× vs 34.16×).
 
 ---
 
@@ -89,4 +89,4 @@ python scripts/benchmark.py --reps 200 && cat benchmark_report.md
 gh workflow run rust-build-test.yml --ref main -f mode=full && gh run watch
 ```
 
-*Generated after **CI #32099654001** — 442/442 full, 22 hard Punkt cases, real params + realign fix. Full matrix_report.json rows for sent_tokenize all `pass` (see CI artifact).*
+*Generated after **CI #32109416889** — 442/442 full, 22 hard Punkt cases, F1 fixed (space/tab/char 1.2–1.3×), word 44.68×, sent 4.40×.*

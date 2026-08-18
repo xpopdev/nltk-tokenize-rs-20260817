@@ -1,7 +1,7 @@
 {
   "_comment": "Updated by the planner (milestone list), verifier (per-milestone status), and ci-dispatcher (last offloaded run) agents. Read this at the start of any /port-to-rust run to resume instead of restarting from milestone 1.",
   "library": "nltk.tokenize",
-  "branch": "port/nltk-tokenize-2026-08-17",
+  "branch": "port/nltk-tokenize-fixups-2026-08-18",
   "plan_approved": true,
   "milestones": [
     {
@@ -11,7 +11,7 @@
     },
     {
       "id": "M2",
-      "title": "Punkt inference — sent_tokenize / PunktSentenceTokenizer vs pickled params",
+      "title": "Punkt inference \u2014 sent_tokenize / PunktSentenceTokenizer vs pickled params",
       "status": "done"
     },
     {
@@ -41,15 +41,27 @@
     }
   ],
   "last_ci_run": {
-    "id": 32099654001,
-    "branch": "main",
+    "id": 32109416889,
+    "branch": "port/nltk-tokenize-fixups-2026-08-18",
     "mode": "full",
     "status": "success",
-    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32099654001"
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32109416889"
   },
   "followup": [
-    {"id": "F1", "title": "Fix space/tab/char_tokenize regressions (fast path, pre-size PyList)", "status": "not_started"},
-    {"id": "F2", "title": "Explain sent_tokenize 4.29× gap (profile punkt/ marshalling / GLOBAL_PUNKT hit)", "status": "not_started"},
-    {"id": "F3", "title": "Close/doc coverage gaps (training, NIST/Stanford/REPP, deferrable) via rank_usage", "status": "not_started"}
+    {
+      "id": "F1",
+      "title": "Fix space/tab/char_tokenize regressions (fast path, pre-size PyList)",
+      "status": "done"
+    },
+    {
+      "id": "F2",
+      "title": "Explain sent_tokenize 4.29\u00d7 gap (profile punkt/ marshalling / GLOBAL_PUNKT hit)",
+      "status": "done"
+    },
+    {
+      "id": "F3",
+      "title": "Close/doc coverage gaps (training, NIST/Stanford/REPP, deferrable) via rank_usage",
+      "status": "done"
+    }
   ]
 }
