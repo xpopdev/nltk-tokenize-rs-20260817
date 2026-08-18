@@ -41,11 +41,11 @@
     }
   ],
   "last_ci_run": {
-    "id": 32109416889,
-    "branch": "port/nltk-tokenize-fixups-2026-08-18",
+    "id": 32133315068,
+    "branch": "release/v1.0.0",
     "mode": "full",
     "status": "success",
-    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32109416889"
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32133315068"
   },
   "followup": [
     {
@@ -67,12 +67,12 @@
   "release": {
     "version": "1.0.0",
     "items": {
-      "R1": "not_started",
-      "R2": "not_started",
-      "R3": "not_started",
-      "R4": "not_started",
-      "R5": "not_started",
-      "R6": "not_started"
+      "R1": "done",
+      "R2": "done",
+      "R3": "done",
+      "R4": "done",
+      "R5": "done",
+      "R6": "done"
     }
   }
 }

@@ -1,164 +1,176 @@
 [
   {
     "fn": "example.add",
-    "original_us": 0.111,
-    "ported_us": 0.099,
-    "speedup": 1.13
+    "original_us": 0.11,
+    "ported_us": 0.098,
+    "speedup": 1.12
   },
   {
     "fn": "word_tokenize",
-    "original_us": 1682.35,
-    "ported_us": 37.649,
-    "speedup": 44.68
+    "original_us": 1694.672,
+    "ported_us": 37.704,
+    "speedup": 44.95
   },
   {
     "fn": "sent_tokenize",
-    "original_us": 216.625,
-    "ported_us": 49.185,
+    "original_us": 218.186,
+    "ported_us": 49.566,
     "speedup": 4.4
   },
   {
     "fn": "regexp_tokenize",
-    "original_us": 13.871,
-    "ported_us": 0.601,
-    "speedup": 23.08
+    "original_us": 13.651,
+    "ported_us": 0.605,
+    "speedup": 22.58
   },
   {
     "fn": "string_span_tokenize",
-    "original_us": 1.304,
-    "ported_us": 0.36,
-    "speedup": 3.63
+    "original_us": 1.303,
+    "ported_us": 0.365,
+    "speedup": 3.57
   },
   {
     "fn": "regexp_span_tokenize",
-    "original_us": 11.116,
-    "ported_us": 0.322,
-    "speedup": 34.54
+    "original_us": 10.91,
+    "ported_us": 0.315,
+    "speedup": 34.68
   },
   {
     "fn": "spans_to_relative",
-    "original_us": 0.554,
-    "ported_us": 0.371,
-    "speedup": 1.49
+    "original_us": 0.563,
+    "ported_us": 0.375,
+    "speedup": 1.5
   },
   {
     "fn": "is_cjk",
-    "original_us": 0.849,
-    "ported_us": 0.184,
-    "speedup": 4.63
+    "original_us": 0.839,
+    "ported_us": 0.175,
+    "speedup": 4.78
   },
   {
     "fn": "xml_escape",
-    "original_us": 1.046,
-    "ported_us": 0.275,
-    "speedup": 3.81
+    "original_us": 1.047,
+    "ported_us": 0.291,
+    "speedup": 3.6
   },
   {
     "fn": "xml_unescape",
-    "original_us": 0.995,
-    "ported_us": 0.235,
-    "speedup": 4.24
+    "original_us": 0.997,
+    "ported_us": 0.239,
+    "speedup": 4.17
   },
   {
     "fn": "align_tokens",
-    "original_us": 0.783,
-    "ported_us": 0.534,
-    "speedup": 1.47
+    "original_us": 0.79,
+    "ported_us": 0.545,
+    "speedup": 1.45
   },
   {
     "fn": "casual_tokenize",
-    "original_us": 736.255,
-    "ported_us": 30.516,
-    "speedup": 24.13
+    "original_us": 736.027,
+    "ported_us": 29.999,
+    "speedup": 24.54
   },
   {
     "fn": "toktok_tokenize",
-    "original_us": 358.076,
-    "ported_us": 55.429,
-    "speedup": 6.46
+    "original_us": 365.093,
+    "ported_us": 54.201,
+    "speedup": 6.74
   },
   {
     "fn": "mwe_tokenize",
-    "original_us": 4.315,
-    "ported_us": 1.07,
-    "speedup": 4.03
+    "original_us": 4.322,
+    "ported_us": 1.13,
+    "speedup": 3.83
   },
   {
     "fn": "sexpr_tokenize",
-    "original_us": 4.239,
-    "ported_us": 0.58,
-    "speedup": 7.31
+    "original_us": 4.377,
+    "ported_us": 0.61,
+    "speedup": 7.18
   },
   {
     "fn": "detokenize",
-    "original_us": 15.896,
-    "ported_us": 0.768,
-    "speedup": 20.71
+    "original_us": 16.354,
+    "ported_us": 0.778,
+    "speedup": 21.02
   },
   {
     "fn": "space_tokenize",
-    "original_us": 0.401,
-    "ported_us": 0.327,
-    "speedup": 1.23
+    "original_us": 0.397,
+    "ported_us": 0.325,
+    "speedup": 1.22
   },
   {
     "fn": "tab_tokenize",
-    "original_us": 0.386,
-    "ported_us": 0.287,
-    "speedup": 1.35
+    "original_us": 0.38,
+    "ported_us": 0.284,
+    "speedup": 1.34
   },
   {
     "fn": "char_tokenize",
-    "original_us": 0.425,
-    "ported_us": 0.328,
-    "speedup": 1.3
+    "original_us": 0.417,
+    "ported_us": 0.332,
+    "speedup": 1.26
   },
   {
     "fn": "line_tokenize",
-    "original_us": 0.832,
-    "ported_us": 0.465,
-    "speedup": 1.79
+    "original_us": 0.831,
+    "ported_us": 0.486,
+    "speedup": 1.71
   },
   {
     "fn": "blankline_tokenize",
-    "original_us": 13.414,
-    "ported_us": 0.388,
-    "speedup": 34.59
+    "original_us": 13.254,
+    "ported_us": 0.369,
+    "speedup": 35.89
   },
   {
     "fn": "wordpunct_tokenize",
-    "original_us": 15.582,
-    "ported_us": 0.706,
-    "speedup": 22.07
+    "original_us": 15.388,
+    "ported_us": 0.711,
+    "speedup": 21.63
   },
   {
     "fn": "whitespace_tokenize",
-    "original_us": 14.348,
-    "ported_us": 0.413,
-    "speedup": 34.71
+    "original_us": 14.176,
+    "ported_us": 0.398,
+    "speedup": 35.61
   },
   {
     "fn": "nist_tokenize",
-    "original_us": 6.151,
-    "ported_us": 1.525,
-    "speedup": 4.03
+    "original_us": 6.255,
+    "ported_us": 1.524,
+    "speedup": 4.1
   },
   {
     "fn": "nist_international_tokenize",
-    "original_us": 7.58,
-    "ported_us": 1.376,
-    "speedup": 5.51
+    "original_us": 7.632,
+    "ported_us": 1.378,
+    "speedup": 5.54
   },
   {
     "fn": "legality_tokenize",
-    "original_us": 1.166,
-    "ported_us": 0.664,
+    "original_us": 1.196,
+    "ported_us": 0.679,
     "speedup": 1.76
   },
   {
     "fn": "sonority_tokenize",
-    "original_us": 4.617,
-    "ported_us": 0.591,
-    "speedup": 7.81
+    "original_us": 4.735,
+    "ported_us": 0.592,
+    "speedup": 8.0
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "original_us": 41.478,
+    "ported_us": 6.72,
+    "speedup": 6.17
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "original_us": 32.882,
+    "ported_us": 11.372,
+    "speedup": 2.89
   }
 ]

@@ -24,6 +24,8 @@ jobs:
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
         with:
           target: ${{ matrix.os == 'macos-latest' && 'universal2-apple-darwin' || '' }}
           args: --release --out dist

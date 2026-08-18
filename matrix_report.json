@@ -2650,5 +2650,269 @@
     "label": "nonalpha",
     "status": "pass",
     "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "empty",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "single_word",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "punct",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "quotes",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "currency",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "contraction",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "contraction2",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "parens",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "brackets",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "ellipsis",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "unicode",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "emoji",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "whitespace",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "newlines",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_word_tokenize",
+    "label": "long",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "empty",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "single",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "two",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev2",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "quotes",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "long",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "ortho_break",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "ortho_no_break",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_inc",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_vs",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_dec",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_jan",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_feb",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_aug",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_st",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_va",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_tenn",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_gen",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_prof",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_wash",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_corp",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_ltd",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_phd",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "initials",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "abbrev_eot",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "collocation_b_stewart",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "quotes2",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "shim_sent_tokenize",
+    "label": "numbers",
+    "status": "pass",
+    "detail": ""
   }
 ]

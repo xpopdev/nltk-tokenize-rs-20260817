@@ -1,5 +1,5 @@
 # Matrix report (full)
 
-Total: 442  Passed: 442  Failed: 0
+Total: 486  Passed: 486  Failed: 0
 
 All cases passed.
