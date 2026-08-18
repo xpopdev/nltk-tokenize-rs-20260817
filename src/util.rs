@@ -57,24 +57,21 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
 
 pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
     if pattern == r"\s+" {
-        // fast whitespace spans without regex engine
+        // fast whitespace spans without regex engine — bytes path for ascii
         if s.is_ascii() {
             if s.is_empty() { return vec![(0, 0)]; }
-            // collect token spans (non-ws) without regex
-            let mut out2 = Vec::new();
-            let mut char_idx = 0usize;
-            let mut in_tok = false;
-            let mut tok_start = 0usize;
-            for c in s.chars() {
-                if c.is_whitespace() {
-                    if in_tok { out2.push((tok_start, char_idx)); in_tok = false; }
-                } else {
-                    if !in_tok { tok_start = char_idx; in_tok = true; }
-                }
-                char_idx += 1;
+            let bytes = s.as_bytes();
+            let n = bytes.len();
+            let mut out = Vec::new();
+            let mut i = 0;
+            while i < n {
+                while i < n && matches!(bytes[i], b' ' | b'\t' | b'\n' | b'\r') { i += 1; }
+                if i >= n { break; }
+                let start = i;
+                while i < n && !matches!(bytes[i], b' ' | b'\t' | b'\n' | b'\r') { i += 1; }
+                out.push((start, i));
             }
-            if in_tok { out2.push((tok_start, char_idx)); }
-            return out2;
+            return out;
         }
     }
     let re = cached_regex(pattern);
@@ -152,20 +149,32 @@ pub fn xml_escape(text: &str) -> String {
     if !text.contains(['&', '<', '>', '\'', '"', '|', '[', ']']) {
         return text.to_string();
     }
+    // memchr-like bulk copy: find next special and copy chunk
     let mut out = String::with_capacity(text.len() + 16);
-    for c in text.chars() {
-        match c {
-            '&' => out.push_str("&amp;"),
-            '<' => out.push_str("&lt;"),
-            '>' => out.push_str("&gt;"),
-            '\'' => out.push_str("&apos;"),
-            '"' => out.push_str("&quot;"),
-            '|' => out.push_str("&#124;"),
-            '[' => out.push_str("&#91;"),
-            ']' => out.push_str("&#93;"),
-            _ => out.push(c),
+    let bytes = text.as_bytes();
+    let n = bytes.len();
+    let mut i = 0;
+    let mut last = 0;
+    while i < n {
+        let esc: Option<&str> = match bytes[i] as char {
+            '&' => Some("&amp;"),
+            '<' => Some("&lt;"),
+            '>' => Some("&gt;"),
+            '\'' => Some("&apos;"),
+            '"' => Some("&quot;"),
+            '|' => Some("&#124;"),
+            '[' => Some("&#91;"),
+            ']' => Some("&#93;"),
+            _ => None,
+        };
+        if let Some(rep) = esc {
+            out.push_str(&text[last..i]);
+            out.push_str(rep);
+            last = i + 1;
         }
+        i += 1;
     }
+    out.push_str(&text[last..]);
     out
 }
 

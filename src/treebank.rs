@@ -44,10 +44,12 @@ pub fn detokenize(tokens: &[String], convert_parentheses: bool) -> String {
     text.push(' ');
     text.push_str(&tokens.join(" "));
     text.push(' ');
-    if let Cow::Owned(o) = DT_RE_C3.replace_all(&text, "$1$2 ") { text = o; }
-    if let Cow::Owned(o) = DT_RE_C2.replace_all(&text, "$1$2 ") { text = o; }
-    if let Cow::Owned(o) = DT_RE_END3.replace_all(&text, "$1$2") { text = o; }
-    if let Cow::Owned(o) = DT_RE_END4.replace_all(&text, "$1$2") { text = o; }
+    if text.contains('\'') {
+        if let Cow::Owned(o) = DT_RE_C3.replace_all(&text, "$1$2 ") { text = o; }
+        if let Cow::Owned(o) = DT_RE_C2.replace_all(&text, "$1$2 ") { text = o; }
+        if let Cow::Owned(o) = DT_RE_END3.replace_all(&text, "$1$2") { text = o; }
+        if let Cow::Owned(o) = DT_RE_END4.replace_all(&text, "$1$2") { text = o; }
+    }
     if text.contains("''") { text = text.replace("''", "\""); }
     text = text.trim().to_string();
     if text.contains(" -- ") { text = text.replace(" -- ", "--"); }
@@ -59,18 +61,38 @@ pub fn detokenize(tokens: &[String], convert_parentheses: bool) -> String {
         if text.contains("-LCB-") { text = text.replace("-LCB-", "{"); }
         if text.contains("-RCB-") { text = text.replace("-RCB-", "}"); }
     }
-    if let Cow::Owned(o) = DT_RE_P1.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_P2.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_P3.replace_all(&text, "$1$2") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN1.replace_all(&text, "$1' ") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN2.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN3.replace_all(&text, "$1$2$3") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN4.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN5.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN6.replace_all(&text, "...") { text = o; }
-    if let Cow::Owned(o) = DT_RE_PUN7.replace_all(&text, "$1") { text = o; }
-    if let Cow::Owned(o) = DT_RE_SQ1.replace_all(&text, "$1``") { text = o; }
-    if let Cow::Owned(o) = DT_RE_SQ2.replace_all(&text, "$1") { text = o; }
-    if text.contains("``") { text = text.replace("``", "\""); }
+    if text.contains('[') || text.contains('(') || text.contains('{') || text.contains('<') {
+        if let Cow::Owned(o) = DT_RE_P1.replace_all(&text, "$1") { text = o; }
+    }
+    if text.contains(']') || text.contains('}') || text.contains('>') {
+        if let Cow::Owned(o) = DT_RE_P2.replace_all(&text, "$1") { text = o; }
+        if let Cow::Owned(o) = DT_RE_P3.replace_all(&text, "$1$2") { text = o; }
+    }
+    if text.contains(" ' ") {
+        if let Cow::Owned(o) = DT_RE_PUN1.replace_all(&text, "$1' ") { text = o; }
+    }
+    if text.contains('!') || text.contains('?') {
+        if let Cow::Owned(o) = DT_RE_PUN2.replace_all(&text, "$1") { text = o; }
+    }
+    if text.contains(" .") {
+        if let Cow::Owned(o) = DT_RE_PUN3.replace_all(&text, "$1$2$3") { text = o; }
+    }
+    if text.contains('#') || text.contains('$') {
+        if let Cow::Owned(o) = DT_RE_PUN4.replace_all(&text, "$1") { text = o; }
+    }
+    if text.contains('%') || text.contains(';') {
+        if let Cow::Owned(o) = DT_RE_PUN5.replace_all(&text, "$1") { text = o; }
+    }
+    if text.contains("...") {
+        if let Cow::Owned(o) = DT_RE_PUN6.replace_all(&text, "...") { text = o; }
+    }
+    if text.contains(':') || text.contains(',') {
+        if let Cow::Owned(o) = DT_RE_PUN7.replace_all(&text, "$1") { text = o; }
+    }
+    if text.contains("``") {
+        if let Cow::Owned(o) = DT_RE_SQ1.replace_all(&text, "$1``") { text = o; }
+        if let Cow::Owned(o) = DT_RE_SQ2.replace_all(&text, "$1") { text = o; }
+        text = text.replace("``", "\"");
+    }
     text.trim().to_string()
 }
