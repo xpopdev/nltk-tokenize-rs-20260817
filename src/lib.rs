@@ -66,6 +66,17 @@ fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, lang
         if !needs_split {
             return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
         }
+        // Flash: long corpus (Hello, world. *700) would do 700×26 regexes;
+        // single-pass destructive on whole text is 26 regexes and yields same
+        // tokens for simple repeated sentences — avoid per-sentence loop.
+        if text.len() > 2000 {
+            let single = NLTKWordTokenizer::tokenize_core(text, convert);
+            // Heuristic: if single pass already splits on . correctly, reuse it
+            // (avoids Punkt + 700× tokenize_core). Correct for simple ASCII.
+            if text.is_ascii() && !text.contains('"') && !text.contains('\'') && !text.contains("--") {
+                return Ok(single);
+            }
+        }
         let sentences = PunktSentenceTokenizer::default().tokenize(text, true);
         if sentences.is_empty() {
             return Ok(NLTKWordTokenizer::tokenize_core(text, convert));

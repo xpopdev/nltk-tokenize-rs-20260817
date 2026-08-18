@@ -69,20 +69,40 @@ impl TokenizerI for ToktokTokenizer {
 fn tokenize_inner(text: &str) -> String {
     let mut s = if text.contains('|') { text.replace('|', " &#124; ") } else { text.to_string() };
     if s.contains('\t') { s = s.replace('\t', " "); }
-    if let Cow::Owned(o) = RE_BRACKETS.replace_all(&s, " $1 ") { s = o; }
-    if let Cow::Owned(o) = RE_URL_PUNCT.replace_all(&s, " $1 ") { s = o; }
-    s = apply_with_lookahead_colon(&s);
-    if let Cow::Owned(o) = RE_COMMA.replace_all(&s, " $1 ") { s = o; }
-    if let Cow::Owned(o) = RE_QUOTE.replace_all(&s, " $1 ") { s = o; }
-    if let Cow::Owned(o) = RE_CC1.replace_all(&s, " `` ") { s = o; }
-    if let Cow::Owned(o) = RE_CC2.replace_all(&s, " '' ") { s = o; }
-    if let Cow::Owned(o) = RE_COMMA2.replace_all(&s, " $1 ") { s = o; }
-    if let Cow::Owned(o) = RE_DASH2.replace_all(&s, " $1 ") { s = o; }
-    if let Cow::Owned(o) = RE_DOTS.replace_all(&s, " $1 ") { s = o; }
+    if s.contains('[') || s.contains(']') || s.contains('(') || s.contains(')') || s.contains('{') || s.contains('}') || s.contains('<') || s.contains('>') {
+        if let Cow::Owned(o) = RE_BRACKETS.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains('/') || s.contains('?') || s.contains('#') {
+        if let Cow::Owned(o) = RE_URL_PUNCT.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains(':') { s = apply_with_lookahead_colon(&s); }
+    if s.contains(',') {
+        if let Cow::Owned(o) = RE_COMMA.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains('\'') || s.contains('\u{2019}') || s.contains('`') {
+        if let Cow::Owned(o) = RE_QUOTE.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains(" ` ` ") {
+        if let Cow::Owned(o) = RE_CC1.replace_all(&s, " `` ") { s = o; }
+    }
+    if s.contains(" ' ' ") {
+        if let Cow::Owned(o) = RE_CC2.replace_all(&s, " '' ") { s = o; }
+    }
+    if s.contains(",,") {
+        if let Cow::Owned(o) = RE_COMMA2.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains("--") {
+        if let Cow::Owned(o) = RE_DASH2.replace_all(&s, " $1 ") { s = o; }
+    }
+    if s.contains("..") {
+        if let Cow::Owned(o) = RE_DOTS.replace_all(&s, " $1 ") { s = o; }
+    }
     if s.ends_with('.') && !s.ends_with("..") {
         if let Cow::Owned(o) = RE_FINAL_DOT.replace(&s, " .") { s = o; }
     }
-    if let Cow::Owned(o) = RE_WS2.replace_all(&s, " ") { s = o; }
+    if s.contains("  ") {
+        if let Cow::Owned(o) = RE_WS2.replace_all(&s, " ") { s = o; }
+    }
     s.trim().to_string()
 }
 
