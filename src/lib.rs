@@ -27,6 +27,9 @@ use crate::api::TokenizerI;
 use destructive::NLTKWordTokenizer;
 use punkt::PunktSentenceTokenizer;
 
+static GLOBAL_PUNKT: std::sync::LazyLock<PunktSentenceTokenizer> =
+    std::sync::LazyLock::new(PunktSentenceTokenizer::default);
+
 pub fn add_core(a: i64, b: i64) -> i64 {
     a + b
 }
@@ -77,7 +80,7 @@ fn word_tokenize(py: Python, text: &str, convert_parentheses: Option<bool>, lang
                 return Ok(single);
             }
         }
-        let sentences = PunktSentenceTokenizer::default().tokenize(text, true);
+        let sentences = GLOBAL_PUNKT.tokenize(text, true);
         if sentences.is_empty() {
             return Ok(NLTKWordTokenizer::tokenize_core(text, convert));
         }
@@ -114,9 +117,8 @@ fn sent_tokenize(py: Python, text: &str, language: String, realign_boundaries: b
         }
     }
     py.allow_threads(|| {
-        let tok = PunktSentenceTokenizer::default();
         let _ = &language;
-        Ok(tok.tokenize(text, realign_boundaries))
+        Ok(GLOBAL_PUNKT.tokenize(text, realign_boundaries))
     })
 }
 
