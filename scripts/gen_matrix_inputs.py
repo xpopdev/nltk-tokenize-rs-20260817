@@ -108,6 +108,36 @@ _SENT_CASES = [
     ("abbrev2", "Dr. Jones and Mrs. Smith met."),
     ("quotes", 'He said "Hello." She replied.'),
     ("long", " ".join(["This is a sentence."] * 10)),
+    # --- hard Punkt cases exercising real Kiss&Strunk paths ---
+    # ortho_context disambiguation: same abbrev, break vs no-break
+    ("ortho_break", "The U.S. is large. Many people live there."),
+    ("ortho_no_break", "U.S. troops arrived home."),
+    # 15 random abbrevs from the 156-word list (not just mr/dr)
+    ("abbrev_inc", "Acme Inc. is large. It employs many people."),
+    ("abbrev_vs", "It was him vs. her in court. The judge decided."),
+    ("abbrev_dec", "It happened on Dec. 5. The event was memorable."),
+    ("abbrev_jan", "See you on Jan. 10. Bring a gift."),
+    ("abbrev_feb", "Due by Feb. 28. No extensions allowed."),
+    ("abbrev_aug", "Start Aug. 1. Classes begin then."),
+    ("abbrev_st", "It is on Main St. near town. We walk there."),
+    ("abbrev_va", "She lives in Va. now. It is lovely."),
+    ("abbrev_tenn", "Born in Tenn. in 1980. He moved later."),
+    ("abbrev_gen", "Gen. Smith ordered it. The troops obeyed."),
+    ("abbrev_prof", "Prof. Adams teaches. Students attend."),
+    ("abbrev_wash", "He is from Wash. state. It rains often."),
+    ("abbrev_corp", "Tech Corp. announced it. Shares rose."),
+    ("abbrev_ltd", "Global Ltd. expanded. Markets reacted."),
+    ("abbrev_phd", "She has a Ph.D. in physics. She researches."),
+    # back-to-back initials
+    ("initials", "J. R. R. Tolkien wrote it. He was British."),
+    # abbreviation at true end-of-text (no trailing sentence)
+    ("abbrev_eot", "He works at the U.N."),
+    # real ENGLISH_COLLOCATIONS entry: ("b", "stewart") -> "B. Stewart"
+    ("collocation_b_stewart", "B. Stewart arrived home. He was tired."),
+    # quotes + realignment
+    ("quotes2", 'He said "Stop." She left.'),
+    # numbers with periods
+    ("numbers", "It cost $3.5 million. Sales rose 12%."),
 ]
 
 _TWEET_CASES = [
