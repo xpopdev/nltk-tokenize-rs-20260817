@@ -64,7 +64,7 @@ pub fn detokenize(tokens: &[String], convert_parentheses: bool) -> String {
     if text.contains('[') || text.contains('(') || text.contains('{') || text.contains('<') {
         if let Cow::Owned(o) = DT_RE_P1.replace_all(&text, "$1") { text = o; }
     }
-    if text.contains(']') || text.contains('}') || text.contains('>') {
+    if text.contains(']') || text.contains(')') || text.contains('}') || text.contains('>') {
         if let Cow::Owned(o) = DT_RE_P2.replace_all(&text, "$1") { text = o; }
         if let Cow::Owned(o) = DT_RE_P3.replace_all(&text, "$1$2") { text = o; }
     }
