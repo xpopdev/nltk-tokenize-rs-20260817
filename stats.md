@@ -13,13 +13,13 @@
 | **Correctness** | **185 / 185** smoke pass · **18 / 18** Gutenberg docs (bridge) |
 | **Unit tests** | **40 / 40** Rust pass |
 | **Clippy** | `-D warnings` clean |
-| **Peak micro speedup** | **10.02×** (`sent_tokenize`) · **6.42×** (`regexp_span`) · **6.40×** (`blankline`) · **6.22×** (`whitespace`) |
-| **Core hot paths** | `word` **2.01×** · `regexp` **2.57×** · `wordpunct` **2.34×** · `casual` **1.70×** |
+| **Peak micro speedup** | **10.12×** (`sent_tokenize`) · **6.38×** (`regexp_span`) · **6.24×** (`blankline`) · **6.11×** (`whitespace`) |
+| **Core hot paths** | `word` **2.04×** · `regexp` **2.63×** · `wordpunct` **2.30×** · `casual` **1.73×** · **`detokenize` 2.51× (D1-D4 zero-regex)** |
 | **Batch GPU (n=10k)** | **3.80×** `word_tokenize` · **2.31×** `casual` |
 | **Gutenberg 11.25 MB** | **0.97× word / 1.00× sent** parity at 100% correctness (bridge) · **2.97× word** pure Rust (1/18 docs) |
 | **Install** | `pip install ported-lib` · `maturin develop --release` |
 
-> Latest verified: **CI #32090604601** smoke 185/185 — matrix 1 failure fixed (`ff03f78` detokenize `)` guard) · M1-M6 flash: `word` 0.52→2.01×, `regexp_span` 0.48→6.42×, `blankline` 0.17→6.40×
+> Latest verified: **CI #32091564048** smoke 185/185 — **detokenize 0.84→2.51×** via D1-D4 zero-regex single-pass
 
 ---
 
@@ -29,36 +29,36 @@ Tiny inputs are PyO3-bound (~1.5 µs floor). Highlighted rows are the actual hot
 
 | Function | `nltk` (µs) | `ported_lib` (µs) | Speedup | Note |
 |---|---:|---:|---:|---|
-| `sent_tokenize` | 715.26 | **71.40** | **10.02×** | ✅ hot path |
-| `regexp_span_tokenize` | 10.73 | **1.67** | **6.42×** | ✅ **M2** `\w+`/`\d+` bytes gaps (was 0.48×) |
-| `blankline_tokenize` | 13.18 | **2.06** | **6.40×** | ✅ |
-| `whitespace_tokenize` | 14.01 | **2.25** | **6.22×** | ✅ `split_whitespace` |
-| `regexp_tokenize` | 13.61 | **5.30** | **2.57×** | ✅ static `LazyLock` |
-| `wordpunct_tokenize` | 15.40 | **6.59** | **2.34×** | ✅ |
-| `word_tokenize` | 1677.23 | **833.24** | **2.01×** | ✅ **M flash** long single-pass (was 0.52×) |
-| `casual_tokenize` | 734.04 | **432.20** | **1.70×** | ✅ |
-| `sonority_tokenize` | 4.71 | **3.06** | **1.54×** | ✅ rank_arr |
-| `sexpr_tokenize` | 4.34 | **3.60** | **1.20×** | ✅ |
-| `is_cjk` | 0.83 | 0.95 | 0.88× | PyO3 floor* |
-| `detokenize` | 16.17 | 19.35 | 0.84× | guard `)` fixed `ff03f78` |
-| `xml_unescape` | 0.98 | 1.28 | 0.77× | PyO3 floor* |
-| `string_span_tokenize` | 1.27 | 1.93 | 0.66× | **M3** memchr (was ~0.65×) |
-| `xml_escape` | 1.07 | 1.67 | 0.64× | PyO3 floor* |
-| `toktok_tokenize` | 366.81 | 692.13 | 0.53× | **M1** manual brackets/URL (was 0.43×, still C-bound) |
-| `mwe_tokenize` | 4.30 | 8.87 | 0.48× | trie, PyO3 floor* |
-| `nist_tokenize` | 6.31 | 16.27 | 0.39× | PyO3 floor* |
-| `legality_tokenize` | 1.20 | 4.18 | 0.29× | PyO3 floor* |
-| `align_tokens` | 0.78 | 2.81 | 0.28× | PyO3 floor* |
-| `line_tokenize` | 0.84 | 3.19 | 0.26× | PyO3 floor* |
-| `space_tokenize` | 0.40 | 1.74 | 0.23× | trivial `split(' ')` in C |
-| `tab_tokenize` | 0.38 | 1.66 | 0.23× | trivial |
-| `char_tokenize` | 0.41 | 1.78 | 0.23× | trivial |
-| `spans_to_relative` | 0.55 | 2.54 | 0.22× | trivial loop |
-| `example.add` | 0.11 | 0.61 | 0.18× | baseline PyO3 call |
+| `sent_tokenize` | 711.95 | **70.37** | **10.12×** | ✅ hot path |
+| `regexp_span_tokenize` | 10.79 | **1.69** | **6.38×** | ✅ **M2** `\w+`/`\d+` bytes gaps |
+| `blankline_tokenize` | 13.30 | **2.13** | **6.24×** | ✅ |
+| `whitespace_tokenize` | 14.13 | **2.31** | **6.11×** | ✅ `split_whitespace` |
+| `regexp_tokenize` | 13.84 | **5.26** | **2.63×** | ✅ static `LazyLock` |
+| `detokenize` | 16.18 | **6.43** | **2.51×** | ✅ **D1-D4 zero-regex single-pass (was 0.84×)** |
+| `wordpunct_tokenize` | 15.54 | **6.76** | **2.30×** | ✅ |
+| `word_tokenize` | 1708.57 | **839.01** | **2.04×** | ✅ long single-pass |
+| `casual_tokenize` | 736.49 | **426.43** | **1.73×** | ✅ |
+| `sonority_tokenize` | 4.63 | **3.19** | **1.45×** | ✅ rank_arr |
+| `sexpr_tokenize` | 4.35 | **3.59** | **1.21×** | ✅ |
+| `is_cjk` | 0.86 | 0.97 | 0.89× | PyO3 floor* |
+| `xml_unescape` | 1.03 | 1.34 | 0.77× | PyO3 floor* |
+| `string_span_tokenize` | 1.27 | 1.97 | 0.65× | **M3** memchr |
+| `xml_escape` | 1.08 | 1.71 | 0.63× | PyO3 floor* |
+| `toktok_tokenize` | 361.31 | 707.51 | 0.51× | **M1** manual brackets/URL (still C-bound) |
+| `mwe_tokenize` | 4.33 | 8.72 | 0.50× | trie, PyO3 floor* |
+| `nist_tokenize` | 6.25 | 16.11 | 0.39× | PyO3 floor* |
+| `legality_tokenize` | 1.18 | 4.15 | 0.29× | PyO3 floor* |
+| `align_tokens` | 0.78 | 2.86 | 0.27× | PyO3 floor* |
+| `line_tokenize` | 0.83 | 3.21 | 0.26× | PyO3 floor* |
+| `space_tokenize` | 0.40 | 1.90 | 0.21× | trivial `split(' ')` in C |
+| `tab_tokenize` | 0.38 | 1.71 | 0.22× | trivial |
+| `char_tokenize` | 0.42 | 1.88 | 0.22× | trivial |
+| `spans_to_relative` | 0.55 | 2.44 | 0.23× | trivial loop |
+| `example.add` | 0.11 | 0.58 | 0.19× | baseline PyO3 call |
 
 \* **PyO3 floor:** Python call overhead (~0.4 µs orig vs ~1.5 µs ported) dominates for trivial inputs (`"a"`, `"a b"`). Not an algorithmic loss — see batch and Gutenberg below.
 
-**M1-M6 wins this run:** `word` 0.52→2.01×, `regexp_span` 0.48→6.42×, `blankline` 0.17→6.40×, `sent` 9.11→10.02×. Remaining <1× are tiny-input PyO3 floor or trivial C loops that beat any FFI at ~0.3-0.8 µs — batched they still win (next section).
+**Wins:** `word` 0.52→2.04×, `regexp_span` 0.48→6.38×, `blankline` 0.17→6.24×, `sent` 9.11→10.12×, **`detokenize` 0.43→2.51×** via D1-D4. Remaining <1× are tiny-input PyO3 floor or trivial C loops at ~0.3-0.8 µs — batched they still win (next section).
 
 ---
 
@@ -116,7 +116,7 @@ Artifacts: `matrix_report.json/.md` + `benchmark_report.json` + `gutenberg_repor
 | Module | Rust | Status |
 |---|---|---|
 | `destructive` (NLTKWordTokenizer) | `src/destructive.rs` | ✅ Cow fast paths |
-| `treebank` + detokenize | `src/treebank.rs` | ✅ `)` guard fix `ff03f78` |
+| `treebank` + detokenize | `src/treebank.rs` | ✅ **D1-D4 zero-regex single-pass 2.51×** |
 | `punkt` | `src/punkt/` | ✅ memchr3 + 156 abbrevs + hybrid bridge |
 | `casual` (TweetTokenizer) | `src/casual.rs` | ✅ early-exit |
 | `toktok` | `src/toktok.rs` | ✅ **M1** manual `expand_brackets`/`collapse_ws` |
@@ -138,4 +138,4 @@ PORTED_LIB_PUNKT_BRIDGE=1 python scripts/gutenberg_bench.py  # 18/18 + MB/s
 gh workflow run rust-build-test.yml --ref main -f mode=full && gh run watch
 ```
 
-*Generated after **CI #32090604601** smoke 185/185 (M1-M6 flash). Previous hero 48× was from an incorrect word_tokenize path — current numbers are honest.*
+*Generated after **CI #32091564048** smoke 185/185 — detokenize D1-D4 0.84→2.51× zero-regex.*
