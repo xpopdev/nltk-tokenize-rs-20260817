@@ -46,5 +46,10 @@
     "mode": "full",
     "status": "success",
     "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32099654001"
-  }
+  },
+  "followup": [
+    {"id": "F1", "title": "Fix space/tab/char_tokenize regressions (fast path, pre-size PyList)", "status": "not_started"},
+    {"id": "F2", "title": "Explain sent_tokenize 4.29× gap (profile punkt/ marshalling / GLOBAL_PUNKT hit)", "status": "not_started"},
+    {"id": "F3", "title": "Close/doc coverage gaps (training, NIST/Stanford/REPP, deferrable) via rank_usage", "status": "not_started"}
+  ]
 }

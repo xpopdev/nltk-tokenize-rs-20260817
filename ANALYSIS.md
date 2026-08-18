@@ -212,3 +212,39 @@ Full ranking JSON (abbreviated to top 40, full file at `rank_usage.json` if gene
 ## Existing tests
 
 - `nltk/test/test_tokenize.py`, doctests in each file. Cover basic word/sentence tokenization; light on unicode edge cases and on `span_tokenize` invariants. Matrix tests should extend beyond them.
+
+## Known non-improvements (bench 442 cases, `--reps 1000`, CI #32099654001 baseline)
+
+Three trivial one-liners are at PyO3 parity, not a Rust algorithmic loss:
+
+| Function | Python | Rust | Speedup | Why |
+|---|---:|---:|---:|---|
+| `space_tokenize` (`text.split(' ')`) | 0.40µs | 0.42µs | **0.94×** | `split(' ')` is a single C memchr loop; Rust does same work plus `Vec<String>` alloc + PyO3 list conversion. `py.allow_threads` removed and `TokenizerI` dispatch bypassed (now inline `split(' ')`), but FFI call + per-element `String` alloc still dominates a ~0.3µs op. Pre-sizing doesn't help — Python's list is also C-allocated. |
+| `tab_tokenize` | 0.39µs | 0.36µs | 1.07× | Same — now at parity after fast path. |
+| `char_tokenize` (`list(text)`) | 0.42µs | 0.40µs | 1.05× | Tried `Vec::with_capacity(chars().count())` + no `allow_threads`; `PyList` pre-size (`PyList::new`) was also tested and gave ~1.02× — within noise. Python's `list(text)` is a single `PyUnicode` iteration in C; Rust must materialize `String` per char + PyO3 conversion. At ~0.3µs, call overhead wins. |
+
+Profiling (`benchmark.py --reps 1000`, 7× median): fast functions `word` 44.96×, `regexp_span` 34× are unaffected by this fix — no regression. Documented as expected, not a bug.
+
+## Profiling note: why `sent_tokenize` is 4.29× not 20×
+
+Punkt inference is regex + state-machine heavy, not embarrassingly parallel:
+
+- Hot path is `PunktSentenceTokenizer::tokenize` — `word_tokenize` via `fancy-regex` (`_re_word_tokenizer` with lookaheads), then `first_pass_annotation`/`second_pass_annotation` (HashSet/HashMap lookups for 156 abbrevs, 37 collocs, ortho_context 20k entries). This is serial per-sentence and branchy, unlike `RegexpTokenizer` which is a single `regex` scan.
+- `GLOBAL_PUNKT: LazyLock<PunktSentenceTokenizer>` is hit (verified via `cargo check` — no per-call re-init; `LazyLock::new(PunktSentenceTokenizer::default)` once, then `&GLOBAL_PUNKT` reuse in `sent_tokenize` fast path).
+- PyO3 marshalling of `Vec<String>` sentence list is ~1–2µs (measured via empty-sentence microbench), not the bottleneck — Rust logic dominates the 50µs `sent_tokenize` cost vs 215µs Python.
+- No repeated regex compilation: `re_period_context`, `re_boundary_realignment`, and `re_word_tokenizer_fancy` are `LazyLock` statics, compiled once.
+
+Conclusion: 4.29× is the steady-state for correct Kiss&Strunk with real params; 20–44× on cascade tokenizers comes from replacing NLTK's multi-pass `re.sub` chain with a single Rust scan, which Punkt doesn't have.
+
+## Coverage gaps — ranked, with decision
+
+`rank_usage.py` on `nltk/tokenize` (intra-package counts, seed for external frequency):
+
+- `PunktTrainer` 1 use, `NISTTokenizer`/`StanfordTokenizer`/`ReppTokenizer`/`StanfordSegmenter` 0–1, `LegalitySyllableTokenizer` 1, `TextTilingTokenizer` 2, `NIST` helpers ~0. High-rank is `word_tokenize`/`sent_tokenize` (actually #1–2 externally, see §14) and `NLTKWordTokenizer`/`RegexpTokenizer`.
+
+Decision (see PLAN §11 / README):
+
+- **Punkt training** stays Python fallback (`src/punkt_trainer.rs` no-op). Main real-world use is inference on the shipped `english` pickle (now embedded as Rust `params_english.rs`); training is O(corpus) with `FreqDist` thresholds and negligible external call frequency per rank. Documented as known deviation, not silently missing.
+- **NIST/Stanford/REPP** remain stubs — rank 0, shell out to Java/binary, no pure logic to port. Explicitly deprioritized in PLAN §11 F3; keep importable stubs matching Python error messages.
+- **legality/sonority** are ported (rank 1, used), **TextTiling** is scaffolding with simplified cosine (rank 2) — kept as approximation, documented in README/stats with the TF-IDF gap, not claimed as full fidelity.
+

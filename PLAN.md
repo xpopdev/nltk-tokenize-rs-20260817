@@ -126,4 +126,16 @@ No custom error enum needed beyond mapping to the four `PyErr` types above; use 
 
 ---
 
+## 11. Follow-up: closing gaps from independent verification (2026-08-18)
+
+Independent re-run (fresh clone, NLTK 3.10.3, 442/442 pass) flagged 3 items.
+
+| # | Item | Type | Action |
+|---|---|---|---|
+| F1 | `space/tab/char_tokenize` 0.87–0.98× slower than Python (PyO3 overhead dominates trivial `split`/`list`) | Bug/perf | `rust-porter` fast-path: bypass generic `TokenizerI` dispatch + `allow_threads`, inline `split(' ')`/`split('\t')`/`chars`, pre-size `PyList` for char. Re-bench `--reps 1000`, ensure no regression on fast functions. If FFI floor can't be beaten, document in ANALYSIS §"Known non-improvements" with profiling data. |
+| F2 | `sent_tokenize` only 4.29× vs 20–44× elsewhere | Investigate/document | Profile `src/punkt/` vs marshalling vs regex recompilation; verify `GLOBAL_PUNKT` hit; if inherent serial abbrev lookups, document in ANALYSIS rather than leaving unexplained. |
+| F3 | Coverage gaps (Punkt training, NIST/Stanford/REPP stubs, legality/sonority/texttiling scaffolds) ranked in README | Document/deprioritize | `rank_usage.py` → if low-usage, explicitly deprioritize in PLAN with reason; if `sent_tokenize` inference covers main use, confirm training fallback is acceptable. |
+
+Exit: F1 committed with matrix green, F2/F3 documented in ANALYSIS even if no code change; benchmark/matrix reports refreshed.
+
 **Approval gate:** Do not start `rust-porter` (M1) until this plan is approved. On approval, update `STATUS.json` (`library="nltk.tokenize"`, `branch="port/nltk-tokenize-2026-08-17"`, milestones as table above, `plan_approved=true`).

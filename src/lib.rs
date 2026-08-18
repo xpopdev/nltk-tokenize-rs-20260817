@@ -279,18 +279,23 @@ fn detokenize_py(py: Python, tokens: Vec<String>, convert_parentheses: bool) -> 
 }
 
 #[pyfunction]
-fn space_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
-    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::SpaceTokenizer, text)))
+fn space_tokenize_py(_py: Python, text: &str) -> PyResult<Vec<String>> {
+    // fast path: no allow_threads, no generic dispatch — op is just split(' ')
+    Ok(text.split(' ').map(|s| s.to_string()).collect())
 }
 
 #[pyfunction]
-fn tab_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
-    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::TabTokenizer, text)))
+fn tab_tokenize_py(_py: Python, text: &str) -> PyResult<Vec<String>> {
+    Ok(text.split('\t').map(|s| s.to_string()).collect())
 }
 
 #[pyfunction]
-fn char_tokenize_py(py: Python, text: &str) -> PyResult<Vec<String>> {
-    py.allow_threads(|| Ok(crate::api::TokenizerI::tokenize(&crate::simple::CharTokenizer, text)))
+fn char_tokenize_py(_py: Python, text: &str) -> PyResult<Vec<String>> {
+    // pre-size to char count to avoid Vec growth; no allow_threads
+    let mut out = Vec::with_capacity(text.chars().count());
+    for c in text.chars() { out.push(c.to_string()); }
+    out.shrink_to_fit();
+    Ok(out)
 }
 
 #[pyfunction]
