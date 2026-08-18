@@ -1,13 +1,26 @@
+# Rust build artifacts
 /target
+/dist
+/build
+
+# Python
 __pycache__/
-*.pyc
-.venv/
+*.py[cod]
 *.egg-info/
-dist/
-build/
-matrix-report/
+.venv/
+.venv-*/
+venv/
 *.whl
 .pytest_cache/
 .hypothesis/
-benchmark_report.md
-benchmark_report.json
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
