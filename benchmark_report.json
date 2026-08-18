@@ -1,0 +1,164 @@
+[
+  {
+    "fn": "example.add",
+    "original_us": 0.112,
+    "ported_us": 0.099,
+    "speedup": 1.13
+  },
+  {
+    "fn": "word_tokenize",
+    "original_us": 1680.501,
+    "ported_us": 37.379,
+    "speedup": 44.96
+  },
+  {
+    "fn": "sent_tokenize",
+    "original_us": 215.205,
+    "ported_us": 50.222,
+    "speedup": 4.29
+  },
+  {
+    "fn": "regexp_tokenize",
+    "original_us": 13.675,
+    "ported_us": 0.62,
+    "speedup": 22.04
+  },
+  {
+    "fn": "string_span_tokenize",
+    "original_us": 1.314,
+    "ported_us": 0.359,
+    "speedup": 3.66
+  },
+  {
+    "fn": "regexp_span_tokenize",
+    "original_us": 10.775,
+    "ported_us": 0.315,
+    "speedup": 34.22
+  },
+  {
+    "fn": "spans_to_relative",
+    "original_us": 0.562,
+    "ported_us": 0.362,
+    "speedup": 1.55
+  },
+  {
+    "fn": "is_cjk",
+    "original_us": 0.849,
+    "ported_us": 0.186,
+    "speedup": 4.57
+  },
+  {
+    "fn": "xml_escape",
+    "original_us": 1.046,
+    "ported_us": 0.276,
+    "speedup": 3.79
+  },
+  {
+    "fn": "xml_unescape",
+    "original_us": 1.006,
+    "ported_us": 0.235,
+    "speedup": 4.28
+  },
+  {
+    "fn": "align_tokens",
+    "original_us": 0.792,
+    "ported_us": 0.509,
+    "speedup": 1.56
+  },
+  {
+    "fn": "casual_tokenize",
+    "original_us": 741.3,
+    "ported_us": 30.226,
+    "speedup": 24.53
+  },
+  {
+    "fn": "toktok_tokenize",
+    "original_us": 362.034,
+    "ported_us": 53.46,
+    "speedup": 6.77
+  },
+  {
+    "fn": "mwe_tokenize",
+    "original_us": 4.293,
+    "ported_us": 1.049,
+    "speedup": 4.09
+  },
+  {
+    "fn": "sexpr_tokenize",
+    "original_us": 4.399,
+    "ported_us": 0.589,
+    "speedup": 7.47
+  },
+  {
+    "fn": "detokenize",
+    "original_us": 16.39,
+    "ported_us": 0.767,
+    "speedup": 21.36
+  },
+  {
+    "fn": "space_tokenize",
+    "original_us": 0.4,
+    "ported_us": 0.424,
+    "speedup": 0.94
+  },
+  {
+    "fn": "tab_tokenize",
+    "original_us": 0.388,
+    "ported_us": 0.363,
+    "speedup": 1.07
+  },
+  {
+    "fn": "char_tokenize",
+    "original_us": 0.423,
+    "ported_us": 0.402,
+    "speedup": 1.05
+  },
+  {
+    "fn": "line_tokenize",
+    "original_us": 0.833,
+    "ported_us": 0.473,
+    "speedup": 1.76
+  },
+  {
+    "fn": "blankline_tokenize",
+    "original_us": 13.239,
+    "ported_us": 0.388,
+    "speedup": 34.16
+  },
+  {
+    "fn": "wordpunct_tokenize",
+    "original_us": 15.359,
+    "ported_us": 0.737,
+    "speedup": 20.83
+  },
+  {
+    "fn": "whitespace_tokenize",
+    "original_us": 14.15,
+    "ported_us": 0.403,
+    "speedup": 35.11
+  },
+  {
+    "fn": "nist_tokenize",
+    "original_us": 6.203,
+    "ported_us": 1.516,
+    "speedup": 4.09
+  },
+  {
+    "fn": "nist_international_tokenize",
+    "original_us": 7.599,
+    "ported_us": 1.356,
+    "speedup": 5.6
+  },
+  {
+    "fn": "legality_tokenize",
+    "original_us": 1.205,
+    "ported_us": 0.673,
+    "speedup": 1.79
+  },
+  {
+    "fn": "sonority_tokenize",
+    "original_us": 4.692,
+    "ported_us": 0.599,
+    "speedup": 7.83
+  }
+]

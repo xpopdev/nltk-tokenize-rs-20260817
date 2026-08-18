@@ -41,10 +41,10 @@
     }
   ],
   "last_ci_run": {
-    "id": 32095676231,
+    "id": 32099654001,
     "branch": "main",
     "mode": "full",
     "status": "success",
-    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32095676231"
+    "url": "https://github.com/xpopdev/nltk-tokenize-rs-20260817/actions/runs/32099654001"
   }
 }

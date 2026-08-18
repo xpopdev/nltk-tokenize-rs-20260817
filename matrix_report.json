@@ -1687,6 +1687,138 @@
   },
   {
     "fn": "sent_tokenize",
+    "label": "ortho_break",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "ortho_no_break",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_inc",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_vs",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_dec",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_jan",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_feb",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_aug",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_st",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_va",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_tenn",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_gen",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_prof",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_wash",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_corp",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_ltd",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_phd",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "initials",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "abbrev_eot",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "collocation_b_stewart",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "quotes2",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
+    "label": "numbers",
+    "status": "pass",
+    "detail": ""
+  },
+  {
+    "fn": "sent_tokenize",
     "label": "random_0",
     "status": "pass",
     "detail": ""
