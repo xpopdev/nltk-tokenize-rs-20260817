@@ -11,7 +11,7 @@ pub enum GpuState {
 }
 
 static GPU_STATE: GpuState =
-    GpuState::Unavailable("gpu feature removed in 1.0.0 — batch uses rayon on CPU");
+    GpuState::Unavailable("gpu feature removed in 1.0.0 — batch uses rayon on CPU".to_string());
 
 pub fn is_available() -> bool {
     false
