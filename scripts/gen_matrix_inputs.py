@@ -418,6 +418,19 @@ def _texttiling_cases(size: str) -> Iterator[Case]:
         yield Case(label=label, args=(text,))
 
 
+@register("shim_word_tokenize")
+def _shim_word_cases(size: str) -> Iterator[Case]:
+    # same corpus as word_tokenize — exercises README shim path
+    for label, text in _WORD_CASES:
+        yield Case(label=label, args=(text,))
+
+
+@register("shim_sent_tokenize")
+def _shim_sent_cases(size: str) -> Iterator[Case]:
+    for label, text in _SENT_CASES:
+        yield Case(label=label, args=(text,))
+
+
 # Keep example for backward compat — filter to i64-range to avoid Rust wrapping vs Python bigint divergence
 @register("example.add")
 def _example_add_cases(size: str) -> Iterator[Case]:

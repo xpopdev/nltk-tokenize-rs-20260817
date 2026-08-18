@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ported-lib"
-version = "0.1.0"
+version = "1.0.0"
 description = "Rust-backed drop-in for nltk.tokenize (NLTK 3.9.2) — word_tokenize/sent_tokenize + full tokenizer family"
 readme = "README.md"
 requires-python = ">=3.9"

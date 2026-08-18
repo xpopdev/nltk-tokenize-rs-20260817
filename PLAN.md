@@ -138,4 +138,19 @@ Independent re-run (fresh clone, NLTK 3.10.3, 442/442 pass) flagged 3 items.
 
 Exit: F1 committed with matrix green, F2/F3 documented in ANALYSIS even if no code change; benchmark/matrix reports refreshed.
 
+---
+
+## 12. Release readiness (v1.0.0) — 2026-08-18
+
+Correctness + perf independently verified (442/442, no function <1×). Packaging/release gaps only — no tokenizer behavior changes.
+
+| # | Item | Status |
+|---|---|---|
+| R1 | Version + CHANGELOG: bump `Cargo.toml` + `pyproject.toml` `0.1.0` → `1.0.0`, add `CHANGELOG.md` (Keep a Changelog) with 1.0.0 entry: full family ported, 442/442 vs NLTK 3.9.2/3.10.x, bench link, known deviations from §8. | not_started |
+| R2 | GPU feature: audit `src/gpu/` (`git log -- src/gpu`), confirm callers + matrix/bench coverage, then either document in README or cut optional `wgpu`/`bytemuck`/`pollster` from 1.0.0 surface. | not_started |
+| R3 | Compatible rustc: confirm `LazyLock` patch landed (rustc ≥1.80); if not, add `rust-version = "1.80"` to `Cargo.toml` so older toolchains fail clearly. Then trigger `rust-build-test.yml` + `wheels.yml`/`release-wheels.yml` and confirm green on current `main`. | not_started |
+| R4 | Cross-platform wheel sanity: trigger wheel workflow, fetch one non-Linux artifact, smoke `import ported_lib; word_tokenize(...)`; confirm sdist `pip install` standalone (no crate cache). | not_started |
+| R5 | Packaging claim: add matrix test exercising the README shim (`import nltk; nltk.tokenize.word_tokenize = ported_lib.word_tokenize`) via `nltk.word_tokenize` — the actual promise, not `ported_lib.*` directly. | not_started |
+| R6 | Final gate: `--size full` stays 442/442+ (or higher if R5 adds cases), refresh `benchmark_report.md` (`--reps 1000`) to release build, tag `v1.0.0` only after CI (not local) is green. | not_started |
+
 **Approval gate:** Do not start `rust-porter` (M1) until this plan is approved. On approval, update `STATUS.json` (`library="nltk.tokenize"`, `branch="port/nltk-tokenize-2026-08-17"`, milestones as table above, `plan_approved=true`).

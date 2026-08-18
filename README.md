@@ -58,6 +58,8 @@ except ImportError:
     pass
 ```
 
+Batch / GPU: `ported_lib` exposes `*_batch` and `*_gpu`/`*_batch_gpu` variants (e.g. `word_tokenize_batch`, `sent_tokenize_batch_gpu`). Batch uses rayon on CPU; the `_gpu` suffix is an auto-fallback alias (never slower). The optional `gpu` feature and `wgpu` backend from pre-1.0 explorations were removed in 1.0.0 — see `CHANGELOG.md`.
+
 ## What's ported
 
 | Module | Python | Rust | Notes |

@@ -327,6 +327,40 @@ def _try_import_pairs():
     except Exception:
         pass
 
+    # shim: README drop-in patch (nltk.tokenize.* = ported_lib.*)
+    try:
+        import ported_lib as _shim_pl
+        import nltk.tokenize as _shim_nltk_tok
+        from nltk.tokenize import word_tokenize as _shim_orig_wt, sent_tokenize as _shim_orig_st
+
+        def _shim_orig_wt_fn(text, **kw):
+            return _shim_orig_wt(text)
+
+        def _shim_patched_wt(text, **kw):
+            saved = _shim_nltk_tok.word_tokenize
+            try:
+                _shim_nltk_tok.word_tokenize = _shim_pl.word_tokenize
+                return _shim_nltk_tok.word_tokenize(text)
+            finally:
+                _shim_nltk_tok.word_tokenize = saved
+
+        FUNCTION_PAIRS["shim_word_tokenize"] = (_shim_orig_wt_fn, _shim_patched_wt)
+
+        def _shim_orig_st_fn(text, **kw):
+            return _shim_orig_st(text, language=kw.get("language", "english"))
+
+        def _shim_patched_st(text, **kw):
+            saved = _shim_nltk_tok.sent_tokenize
+            try:
+                _shim_nltk_tok.sent_tokenize = _shim_pl.sent_tokenize
+                return _shim_nltk_tok.sent_tokenize(text, language=kw.get("language", "english"))
+            finally:
+                _shim_nltk_tok.sent_tokenize = saved
+
+        FUNCTION_PAIRS["shim_sent_tokenize"] = (_shim_orig_st_fn, _shim_patched_st)
+    except Exception:
+        pass
+
 
 @dataclass
 class Row:

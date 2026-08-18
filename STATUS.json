@@ -1,7 +1,7 @@
 {
   "_comment": "Updated by the planner (milestone list), verifier (per-milestone status), and ci-dispatcher (last offloaded run) agents. Read this at the start of any /port-to-rust run to resume instead of restarting from milestone 1.",
   "library": "nltk.tokenize",
-  "branch": "port/nltk-tokenize-fixups-2026-08-18",
+  "branch": "release/v1.0.0",
   "plan_approved": true,
   "milestones": [
     {
@@ -63,5 +63,16 @@
       "title": "Close/doc coverage gaps (training, NIST/Stanford/REPP, deferrable) via rank_usage",
       "status": "done"
     }
-  ]
+  ],
+  "release": {
+    "version": "1.0.0",
+    "items": {
+      "R1": "not_started",
+      "R2": "not_started",
+      "R3": "not_started",
+      "R4": "not_started",
+      "R5": "not_started",
+      "R6": "not_started"
+    }
+  }
 }
