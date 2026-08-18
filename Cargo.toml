@@ -21,7 +21,7 @@ memchr = "2.8.3"
 aho-corasick = "1.1.5"
 
 [features]
-default = []
+default = ["punkt-fancy"]
 punkt-fancy = ["fancy-regex"]
 gpu = ["dep:wgpu", "dep:bytemuck", "dep:pollster"]
 

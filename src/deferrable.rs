@@ -224,8 +224,9 @@ impl TextTilingTokenizer {
         if tokens.len() <= self.w * 2 {
             return vec![s.trim().to_string()];
         }
-        // Simplified Tiling: sliding window cosine over term frequencies
-        // For speed, use a lightweight scoring without full TF-IDF
+        // Simplified approximation: sliding window cosine over raw term
+        // frequencies without TF-IDF weighting or NLTK's full depth-valley
+        // smoothing. Suitable for short texts; not a full TextTiling port.
         let vocab: HashSet<&str> = tokens.iter().copied().collect();
         let vocab_list: Vec<&str> = vocab.into_iter().collect();
         let vocab_idx: HashMap<&str, usize> = vocab_list.iter().enumerate().map(|(i, &w)| (w, i)).collect();

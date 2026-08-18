@@ -1,5 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
+/// Training is intentionally a Python fallback in this port.
+/// The Kiss & Strunk unsupervised learner (Dunning log-likelihood,
+/// collocation/ortho counts) lives in NLTK's Python `punkt_trainer.py`
+/// and is not reimplemented in Rust — use `nltk.tokenize.punkt.PunktTrainer`
+/// directly for training, then export params via `params_english.rs`.
 #[derive(Debug, Clone, Default)]
 pub struct PunktTrainer {
     pub abbrev_types: HashSet<String>,
@@ -10,15 +15,8 @@ impl PunktTrainer {
     pub fn new() -> Self {
         Self::default()
     }
-    pub fn train(&mut self, text: &str) {
-        for w in text.split_whitespace() {
-            if w.ends_with('.') && w.len() > 2 {
-                self.abbrev_types
-                    .insert(w.trim_end_matches('.').to_lowercase());
-            }
-        }
-        let _ = &self.collocations;
-        let _ = HashMap::<String, i32>::new();
+    pub fn train(&mut self, _text: &str) {
+        // No-op: training requires the full Python trainer. See module doc.
     }
     pub fn finalize(self) -> crate::punkt::PunktParameters {
         crate::punkt::PunktParameters {
@@ -34,9 +32,9 @@ impl PunktTrainer {
 mod tests {
     use super::*;
     #[test]
-    fn train_basic() {
+    fn train_is_noop_fallback() {
         let mut t = PunktTrainer::new();
         t.train("Mr. Smith went home. Dr. Jones stayed.");
-        assert!(t.abbrev_types.contains("mr"));
+        assert!(t.abbrev_types.is_empty(), "Rust trainer is a fallback — training is Python-side");
     }
 }
