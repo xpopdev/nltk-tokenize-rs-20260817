@@ -5,6 +5,26 @@ pub fn string_span_tokenize(s: &str, sep: &str) -> Vec<(usize, usize)> {
         panic!("Token delimiter must not be empty");
     }
     if s.is_ascii() && sep.is_ascii() {
+        // fast single-char sep via memchr
+        if sep.len() == 1 {
+            let b = sep.as_bytes()[0];
+            let mut out = Vec::new();
+            let mut left = 0usize;
+            let bytes = s.as_bytes();
+            let n = bytes.len();
+            while left < n {
+                if let Some(rel) = memchr::memchr(b, &bytes[left..]) {
+                    let right = left + rel;
+                    if right != left { out.push((left, right)); }
+                    left = right + 1;
+                    if left >= n { break; }
+                } else {
+                    if left != n { out.push((left, n)); }
+                    break;
+                }
+            }
+            return out;
+        }
         let mut out = Vec::new();
         let mut left = 0usize;
         loop {
@@ -73,6 +93,54 @@ pub fn regexp_span_tokenize(s: &str, pattern: &str) -> Vec<(usize, usize)> {
             }
             return out;
         }
+    }
+    if pattern == r"\w+" && s.is_ascii() {
+        let bytes = s.as_bytes();
+        let n = bytes.len();
+        if n == 0 { return vec![(0, 0)]; }
+        let mut out = Vec::new();
+        let mut left = 0usize;
+        let mut i = 0;
+        while i < n {
+            if bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_' {
+                let start = i;
+                while i < n && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') { i += 1; }
+                let right = start;
+                let next = i;
+                if right != left { out.push((left, right)); }
+                left = next;
+            } else {
+                i += 1;
+            }
+        }
+        out.push((left, n));
+        let out_len = out.len();
+        out.retain(|(a,b)| !(a==b && out_len>1));
+        return out;
+    }
+    if pattern == r"\d+" && s.is_ascii() {
+        let bytes = s.as_bytes();
+        let n = bytes.len();
+        if n == 0 { return vec![(0, 0)]; }
+        let mut out = Vec::new();
+        let mut left = 0usize;
+        let mut i = 0;
+        while i < n {
+            if bytes[i].is_ascii_digit() {
+                let start = i;
+                while i < n && bytes[i].is_ascii_digit() { i += 1; }
+                let right = start;
+                let next = i;
+                if right != left { out.push((left, right)); }
+                left = next;
+            } else {
+                i += 1;
+            }
+        }
+        out.push((left, n));
+        let out_len = out.len();
+        out.retain(|(a,b)| !(a==b && out_len>1));
+        return out;
     }
     let re = cached_regex(pattern);
     if s.is_ascii() {

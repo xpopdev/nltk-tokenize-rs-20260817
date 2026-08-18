@@ -13,9 +13,11 @@ fn xml_unescape_local(s: &str) -> String {
 }
 
 fn lang_independent_sub(text: &str) -> String {
-    let t = RE_SKIP.replace_all(text, "").to_string();
-    let t = xml_unescape_local(&t);
-    RE_EOL_HYPHEN.replace_all(&t, " ").to_string()
+    let mut t = text.to_string();
+    if t.contains("<skipped>") { t = RE_SKIP.replace_all(&t, "").to_string(); }
+    if t.contains("&") { t = xml_unescape_local(&t); }
+    if t.contains('\u{2028}') { t = RE_EOL_HYPHEN.replace_all(&t, " ").to_string(); }
+    t
 }
 
 fn pad_punct(text: &str) -> String {

@@ -4,8 +4,6 @@ use regex::Regex;
 
 use crate::api::TokenizerI;
 
-static RE_BRACKETS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([\[\](){}<>])").unwrap());
-static RE_URL_PUNCT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([/?#])").unwrap());
 static RE_COMMA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\s*([,])\s*").unwrap());
 static RE_QUOTE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(['\u{2019}`])").unwrap());
 static RE_CC1: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" ` ` ").unwrap());
@@ -14,7 +12,54 @@ static RE_COMMA2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(,{2,})").unwr
 static RE_DASH2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(-{2,})").unwrap());
 static RE_DOTS: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(\.{2,})").unwrap());
 static RE_FINAL_DOT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.$").unwrap());
-static RE_WS2: LazyLock<Regex> = LazyLock::new(|| Regex::new(r" {2,}").unwrap());
+
+#[inline]
+fn expand_brackets(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    for c in s.chars() {
+        if matches!(c, '[' | ']' | '(' | ')' | '{' | '}' | '<' | '>') {
+            out.push(' ');
+            out.push(c);
+            out.push(' ');
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+#[inline]
+fn expand_url_punct(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 8);
+    for c in s.chars() {
+        if matches!(c, '/' | '?' | '#') {
+            out.push(' ');
+            out.push(c);
+            out.push(' ');
+        } else {
+            out.push(c);
+        }
+    }
+    out
+}
+
+#[inline]
+fn collapse_ws(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let n = bytes.len();
+    let mut out = String::with_capacity(s.len());
+    let mut i = 0;
+    while i < n {
+        if bytes[i] == b' ' && i + 1 < n && bytes[i + 1] == b' ' {
+            out.push(' ');
+            while i < n && bytes[i] == b' ' { i += 1; }
+        } else {
+            out.push(bytes[i] as char);
+            i += 1;
+        }
+    }
+    out
+}
 
 fn apply_with_lookahead_colon(text: &str) -> String {
     if !text.is_ascii() {
@@ -70,10 +115,10 @@ fn tokenize_inner(text: &str) -> String {
     let mut s = if text.contains('|') { text.replace('|', " &#124; ") } else { text.to_string() };
     if s.contains('\t') { s = s.replace('\t', " "); }
     if s.contains('[') || s.contains(']') || s.contains('(') || s.contains(')') || s.contains('{') || s.contains('}') || s.contains('<') || s.contains('>') {
-        if let Cow::Owned(o) = RE_BRACKETS.replace_all(&s, " $1 ") { s = o; }
+        s = expand_brackets(&s);
     }
     if s.contains('/') || s.contains('?') || s.contains('#') {
-        if let Cow::Owned(o) = RE_URL_PUNCT.replace_all(&s, " $1 ") { s = o; }
+        s = expand_url_punct(&s);
     }
     if s.contains(':') { s = apply_with_lookahead_colon(&s); }
     if s.contains(',') {
@@ -101,7 +146,7 @@ fn tokenize_inner(text: &str) -> String {
         if let Cow::Owned(o) = RE_FINAL_DOT.replace(&s, " .") { s = o; }
     }
     if s.contains("  ") {
-        if let Cow::Owned(o) = RE_WS2.replace_all(&s, " ") { s = o; }
+        s = collapse_ws(&s);
     }
     s.trim().to_string()
 }
