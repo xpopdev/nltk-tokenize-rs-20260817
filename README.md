@@ -4,6 +4,7 @@
 [![PyPI](https://img.shields.io/badge/pip-ported--lib-blue)](https://github.com/xpopdev/nltk-tokenize-rs-20260817/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![Python 3.9–3.13](https://img.shields.io/badge/python-3.9--3.13-blue)](pyproject.toml)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/xpopdev/nltk-tokenize-rs-20260817/blob/main/benchmark_speed_test.ipynb)
 
 **Rust-backed drop-in for `nltk.tokenize` (NLTK 3.9.2/3.10.x) — 44× faster `word_tokenize`, 486/486 differential-test parity.**
 
