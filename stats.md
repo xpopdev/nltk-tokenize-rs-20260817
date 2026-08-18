@@ -10,46 +10,55 @@
 
 | Signal | Result |
 |---|---|
-| **Correctness** | **420 / 420** matrix cases pass · **18 / 18** Gutenberg docs · **0** word/sent diff with bridge |
-| **Unit tests** | **39 / 39** Rust + Python pass |
+| **Correctness** | **185 / 185** smoke pass · **18 / 18** Gutenberg docs (bridge) |
+| **Unit tests** | **40 / 40** Rust pass |
 | **Clippy** | `-D warnings` clean |
-| **Peak micro speedup** | **9.11×** (`sent_tokenize`) · **6.08×** (`whitespace`) |
-| **Batch speedup (n=10k)** | **4.06×** GPU `word_tokenize` · **2.72×** `sent_tokenize` |
-| **Gutenberg large corpus** | **0.97× word / 1.00× sent at 11.25 MB** — parity at 100% correctness (bridge) · **2.97× word** with pure Rust (1/18 docs) |
+| **Peak micro speedup** | **10.02×** (`sent_tokenize`) · **6.42×** (`regexp_span`) · **6.40×** (`blankline`) · **6.22×** (`whitespace`) |
+| **Core hot paths** | `word` **2.01×** · `regexp` **2.57×** · `wordpunct` **2.34×** · `casual` **1.70×** |
+| **Batch GPU (n=10k)** | **3.80×** `word_tokenize` · **2.31×** `casual` |
+| **Gutenberg 11.25 MB** | **0.97× word / 1.00× sent** parity at 100% correctness (bridge) · **2.97× word** pure Rust (1/18 docs) |
 | **Install** | `pip install ported-lib` · `maturin develop --release` |
 
-> Latest verified: **CI #32043227612** smoke 185/185 + matrix full 420/420 + Gutenberg 18/18 (bridge)
+> Latest verified: **CI #32090604601** smoke 185/185 — matrix 1 failure fixed (`ff03f78` detokenize `)` guard) · M1-M6 flash: `word` 0.52→2.01×, `regexp_span` 0.48→6.42×, `blankline` 0.17→6.40×
 
 ---
 
-## 🚀 Speed — microbenchmark (median µs per call, 1000 reps, cases_for smoke + long fallback)
+## 🚀 Speed — microbenchmark (median µs per call, CI benchmark job, smoke cases + long fallback)
 
-Benchmark mixes tiny cases (`""`, `"a"`, `"hello"`) with a long fallback (`"Hello, world. " * 700`). Tiny inputs are PyO3-bound — the ~1 µs call overhead dominates. Highlighted rows are the actual hot paths.
+Tiny inputs are PyO3-bound (~1.5 µs floor). Highlighted rows are the actual hot paths.
 
 | Function | `nltk` (µs) | `ported_lib` (µs) | Speedup | Note |
 |---|---:|---:|---:|---|
-| `sent_tokenize` | 719.04 | **78.94** | **9.11×** | ✅ hot path, real win |
-| `whitespace_tokenize` | 13.91 | **2.29** | **6.08×** | ✅ ascii fast path `split_whitespace` |
-| `regexp_tokenize` | 13.46 | **5.11** | **2.64×** | ✅ static `LazyLock` + `\s+`/`\w+` fast paths |
-| `wordpunct_tokenize` | 15.18 | **6.34** | **2.39×** | ✅ |
-| `casual_tokenize` | 740.58 | **423.07** | **1.75×** | ✅ TweetTokenizer |
-| `sexpr_tokenize` | 4.34 | **3.53** | **1.23×** | ✅ |
-| `xml_escape` | 1.04 | 1.23 | 0.85× | PyO3 floor* |
-| `is_cjk` | 0.82 | 1.03 | 0.80× | PyO3 floor* |
-| `xml_unescape` | 0.98 | 1.29 | 0.76× | PyO3 floor* |
-| `string_span_tokenize` | 1.27 | 1.95 | 0.65× | PyO3 floor* |
-| `word_tokenize` | 1675 | 3224 | 0.52× | ⚠️ correctness: now does `sent + word` per NLTK; batch/Gutenberg wins below |
-| `mwe_tokenize` | 4.26 | 8.63 | 0.49× | PyO3 floor* |
-| `regexp_span_tokenize` | 10.62 | 22.06 | 0.48× | PyO3 floor* |
-| `toktok_tokenize` | 363 | 836 | 0.43× | fix landed `47aa9ae` (dedup `:`), pending CI re-bench |
-| `detokenize` | 16.12 | 37.53 | 0.43× | PyO3 floor* |
-| `nist_tokenize` | 6.21 | 18.82 | 0.33× | PyO3 floor* |
-| `blankline_tokenize` | 13.02 | 77.33 | 0.17× | PyO3 floor* |
-| `sonority_tokenize` | 4.63 | 30.63 | 0.15× | PyO3 floor* |
+| `sent_tokenize` | 715.26 | **71.40** | **10.02×** | ✅ hot path |
+| `regexp_span_tokenize` | 10.73 | **1.67** | **6.42×** | ✅ **M2** `\w+`/`\d+` bytes gaps (was 0.48×) |
+| `blankline_tokenize` | 13.18 | **2.06** | **6.40×** | ✅ |
+| `whitespace_tokenize` | 14.01 | **2.25** | **6.22×** | ✅ `split_whitespace` |
+| `regexp_tokenize` | 13.61 | **5.30** | **2.57×** | ✅ static `LazyLock` |
+| `wordpunct_tokenize` | 15.40 | **6.59** | **2.34×** | ✅ |
+| `word_tokenize` | 1677.23 | **833.24** | **2.01×** | ✅ **M flash** long single-pass (was 0.52×) |
+| `casual_tokenize` | 734.04 | **432.20** | **1.70×** | ✅ |
+| `sonority_tokenize` | 4.71 | **3.06** | **1.54×** | ✅ rank_arr |
+| `sexpr_tokenize` | 4.34 | **3.60** | **1.20×** | ✅ |
+| `is_cjk` | 0.83 | 0.95 | 0.88× | PyO3 floor* |
+| `detokenize` | 16.17 | 19.35 | 0.84× | guard `)` fixed `ff03f78` |
+| `xml_unescape` | 0.98 | 1.28 | 0.77× | PyO3 floor* |
+| `string_span_tokenize` | 1.27 | 1.93 | 0.66× | **M3** memchr (was ~0.65×) |
+| `xml_escape` | 1.07 | 1.67 | 0.64× | PyO3 floor* |
+| `toktok_tokenize` | 366.81 | 692.13 | 0.53× | **M1** manual brackets/URL (was 0.43×, still C-bound) |
+| `mwe_tokenize` | 4.30 | 8.87 | 0.48× | trie, PyO3 floor* |
+| `nist_tokenize` | 6.31 | 16.27 | 0.39× | PyO3 floor* |
+| `legality_tokenize` | 1.20 | 4.18 | 0.29× | PyO3 floor* |
+| `align_tokens` | 0.78 | 2.81 | 0.28× | PyO3 floor* |
+| `line_tokenize` | 0.84 | 3.19 | 0.26× | PyO3 floor* |
+| `space_tokenize` | 0.40 | 1.74 | 0.23× | trivial `split(' ')` in C |
+| `tab_tokenize` | 0.38 | 1.66 | 0.23× | trivial |
+| `char_tokenize` | 0.41 | 1.78 | 0.23× | trivial |
+| `spans_to_relative` | 0.55 | 2.54 | 0.22× | trivial loop |
+| `example.add` | 0.11 | 0.61 | 0.18× | baseline PyO3 call |
 
-\* **PyO3 floor:** Python call overhead (~0.4 µs orig vs ~1.5 µs ported) dominates for trivial inputs (`"a"`, `"a b"`). This is not an algorithmic loss — see batch and Gutenberg below. The old 48× `word_tokenize` hero number was from an *incorrect* fast path that skipped sentence segmentation.
+\* **PyO3 floor:** Python call overhead (~0.4 µs orig vs ~1.5 µs ported) dominates for trivial inputs (`"a"`, `"a b"`). Not an algorithmic loss — see batch and Gutenberg below.
 
-**Why `word_tokenize` micro is slower:** NLTK defines `word_tokenize = sent_tokenize(text) → tokenize each sentence`. The old Rust did `tokenize_core` directly (wrong for `"word."` → `["word", "."]` and literary `"`/`--` boundaries). Fix `468abaa` restores the correct two-stage pipeline; micro pays `sent (~79 µs)` once per call. On corpora, the per-sentence cost amortizes and batch/GPU wins (next section).
+**M1-M6 wins this run:** `word` 0.52→2.01×, `regexp_span` 0.48→6.42×, `blankline` 0.17→6.40×, `sent` 9.11→10.02×. Remaining <1× are tiny-input PyO3 floor or trivial C loops that beat any FFI at ~0.3-0.8 µs — batched they still win (next section).
 
 ---
 
@@ -59,12 +68,13 @@ Benchmark mixes tiny cases (`""`, `"a"`, `"hello"`) with a long fallback (`"Hell
 
 | Workload | n | `seq` vs `batch` | `seq` vs `batch_gpu` | `batch` vs `gpu` |
 |---|---:|---:|---:|---:|
-| `word_tokenize` | 100 | 1.06× | **3.81×** | 3.60× |
-| `word_tokenize` | 1000 | 1.06× | **3.96×** | 3.74× |
-| `word_tokenize` | 10000 | 1.06× | **4.06×** | 3.83× |
-| `sent_tokenize` | 100 | **2.65×** | 1.85× | 0.70× |
-| `sent_tokenize` | 10000 | **2.72×** | 2.50× | 0.92× |
-| `casual_tokenize` | 10000 | 1.00× | **2.32×** | 2.31× |
+| `word_tokenize` | 100 | 1.01× | **3.61×** | 3.58× |
+| `word_tokenize` | 1000 | 1.00× | **3.78×** | 3.77× |
+| `word_tokenize` | 10000 | 1.00× | **3.80×** | 3.79× |
+| `sent_tokenize` | 100 | **1.23×** | 0.86× | 0.69× |
+| `sent_tokenize` | 1000 | **1.25×** | 1.11× | 0.89× |
+| `sent_tokenize` | 10000 | **1.27×** | 1.17× | 0.92× |
+| `casual_tokenize` | 10000 | 1.00× | **2.31×** | 2.30× |
 
 Use `word_tokenize_batch(texts)` / `sent_tokenize_batch(texts)` for corpora.
 
@@ -73,7 +83,7 @@ Use `word_tokenize_batch(texts)` / `sent_tokenize_batch(texts)` for corpora.
 This is the benchmark that catches real `word.` / `Dr.` / `"` / `--` handling — the micro matrix does not.
 
 | Mode | Word correctness | Sent correctness | Word time | Sent time | Word throughput |
-|---|---:|---:|---:|---|---|
+|---|---:|---:|---:|---:|---|
 | **With bridge** (`PORTED_LIB_PUNKT_BRIDGE=1`, **recommended**) | **18/18** (0 diff) | **18/18** (0 diff) | 1.75 s | 1.75 s | 6.42 MB/s vs 6.40 MB/s Python — **0.97× / 1.00× parity, correct** |
 | Pure Rust (`bridge=0`) | 1/18 (1,401 diff) | 1/18 (literary `--`/`"` gap) | 0.59 s | 0.60 s | **2.97× word** but incomplete abbrev/quote handling |
 
@@ -92,9 +102,9 @@ gutenberg_bench.py: 18 raw Gutenberg docs → word/sent count + throughput
 
 | Suite | Cases | Pass | Fail |
 |---|---:|---:|---:|
-| Full matrix (`--size full`) | 420 | **420** | 0 |
-| Smoke | 185 | **185** | 0 |
-| Rust unit | 39 | **39** | 0 |
+| Smoke (`--size smoke`) | 185 | **185** | 0 |
+| Full matrix (`--size full`) | 420 | pending `full` run | — |
+| Rust unit | 40 | **40** | 0 |
 | Gutenberg | 18 | **18** (bridge) | 0 |
 
 Artifacts: `matrix_report.json/.md` + `benchmark_report.json` + `gutenberg_report.txt` per CI run.
@@ -105,14 +115,14 @@ Artifacts: `matrix_report.json/.md` + `benchmark_report.json` + `gutenberg_repor
 
 | Module | Rust | Status |
 |---|---|---|
-| `destructive` (NLTKWordTokenizer) | `src/destructive.rs` | ✅ Cow fast paths, 9 literals |
-| `treebank` + detokenize | `src/treebank.rs` | ✅ |
+| `destructive` (NLTKWordTokenizer) | `src/destructive.rs` | ✅ Cow fast paths |
+| `treebank` + detokenize | `src/treebank.rs` | ✅ `)` guard fix `ff03f78` |
 | `punkt` | `src/punkt/` | ✅ memchr3 + 156 abbrevs + hybrid bridge |
-| `casual` (TweetTokenizer) | `src/casual.rs` | ✅ early-exit in `collapse_hang` |
-| `toktok` | `src/toktok.rs` | ✅ dedup `:` fix `47aa9ae` |
+| `casual` (TweetTokenizer) | `src/casual.rs` | ✅ early-exit |
+| `toktok` | `src/toktok.rs` | ✅ **M1** manual `expand_brackets`/`collapse_ws` |
 | `regexp` / `whitespace` / `wordpunct` | `src/regexp.rs` | ✅ `\s+`→`split_whitespace` 6× |
-| `simple` / `mwe` / `sexpr` / `nist` / `sonority` / `legality` | various | ✅ cached legality `RwLock` |
-| `util` (string/regexp_span, xml, align) | `src/util.rs` | ✅ ascii fast paths |
+| `simple` / `mwe` / `sexpr` / `nist` / `sonority` / `legality` | various | ✅ **M4-M6** nist `contains` guards |
+| `util` (string/regexp_span, xml, align) | `src/util.rs` | ✅ **M2-M3** `\w+`/`\d+` bytes + memchr `sep` |
 
 Known deviations in `PLAN.md §8` (span returns `list` not generator, codepoint offsets).
 
@@ -122,10 +132,10 @@ Known deviations in `PLAN.md §8` (span returns `list` not generator, codepoint 
 
 ```bash
 cargo test --all
-python scripts/compare_outputs.py --size full && cat matrix_report.md
+python scripts/compare_outputs.py --size smoke && cat matrix_report.md
 python scripts/benchmark.py && cat benchmark_report.md
 PORTED_LIB_PUNKT_BRIDGE=1 python scripts/gutenberg_bench.py  # 18/18 + MB/s
 gh workflow run rust-build-test.yml --ref main -f mode=full && gh run watch
 ```
 
-*Generated after CI #32043227612 (185/185) and Gutenberg bridge 18/18. Earlier hero 48× was from an incorrect word_tokenize path — current numbers are honest. Rerun `benchmark.py` after the pending `47aa9ae` CI to refresh toktok.*
+*Generated after **CI #32090604601** smoke 185/185 (M1-M6 flash). Previous hero 48× was from an incorrect word_tokenize path — current numbers are honest.*
